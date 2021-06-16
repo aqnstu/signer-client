@@ -1,0 +1,7 @@
+<PackageData>
+    <CompetitiveGroupProgram>
+        <UIDCompetitiveGroup>{{uidcompetitivegroup}}</UIDCompetitiveGroup>
+        <UIDEducationProgram>{{uideducationprogram}}</UIDEducationProgram>
+        <UID>{{uid}}</UID>
+    </CompetitiveGroupProgram>
+</PackageData>

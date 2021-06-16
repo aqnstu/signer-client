@@ -1,0 +1,8 @@
+<PackageData>
+    <EducationProgram>
+        <UID>{{uid}}</UID>
+        <Name>{{name}}</Name>
+        <IDEducationForm>{{ideducationform}}</IDEducationForm>
+        <IDOCSO>{{idocso}}</IDOCSO>
+    </EducationProgram>
+</PackageData>

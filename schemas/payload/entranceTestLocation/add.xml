@@ -1,0 +1,9 @@
+<PackageData>
+  <EntranceTestLocation>
+    <UID>string</UID>
+    <UIDEntranceTest>string</UIDEntranceTest>
+    <TestDate>2008-09-29T05:49:45+00:03</TestDate>
+    <TestLocation>string</TestLocation>
+    <EntrantsCount>100</EntrantsCount>
+  </EntranceTestLocation>
+</PackageData>

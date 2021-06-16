@@ -1,0 +1,21 @@
+<PackageData>
+  <Campaign>
+    <UID>2019_06</UID>
+    <Name>string</Name>
+    <YearStart>2020</YearStart>
+    <YearEnd>2021</YearEnd>
+    <EducationForms>
+      <!--Zero or more repetitions:-->
+      <IDEducationForm>100</IDEducationForm>
+    </EducationForms>
+    <EducationLevels>
+      <!--Zero or more repetitions:-->
+      <IDEducationLevel>100</IDEducationLevel>
+    </EducationLevels>
+    <IDCampaignType>100</IDCampaignType>
+    <IDCampaignStatus>100</IDCampaignStatus>
+    <NumberAgree>10</NumberAgree>
+    <CountDirections>8</CountDirections>
+    <EndDate>2008-09-29T05:49:45+00:00</EndDate>
+  </Campaign>
+</PackageData>

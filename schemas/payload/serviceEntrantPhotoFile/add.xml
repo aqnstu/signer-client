@@ -1,0 +1,18 @@
+<PackageData>
+  <EntrantPhotoFile>
+    <IDEntrantChoice>
+      <!--You have a CHOICE of the next 4 items at this level-->
+      <GUID>string</GUID>
+      <SNILS>string</SNILS>
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </IDEntrantChoice>
+    <Base64File>string</Base64File>
+    <IDChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </IDChoice>
+    <FileName>string</FileName>
+  </EntrantPhotoFile>
+</PackageData>

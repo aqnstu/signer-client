@@ -1,0 +1,29 @@
+<PackageData>
+    <Identification>
+        <IDEntrantChoice>
+            <!--You have a CHOICE of the next 2 items at this level-->
+            <GUID>string</GUID>
+            <SNILS>string</SNILS>
+        </IDEntrantChoice>
+        <IDDocumentType>100</IDDocumentType>
+        <Surname>string</Surname>
+        <Name>string</Name>
+        <!--Optional:-->
+        <Patronymic>string</Patronymic>
+        <!--Optional:-->
+        <DocSeries>string</DocSeries>
+        <DocNumber>100</DocNumber>
+        <DocOrganization>string</DocOrganization>
+        <IssueDate>2008-09-29</IssueDate>
+        <IDOKCM>100</IDOKCM>
+        <!--Optional:-->
+        <Base64File>string</Base64File>
+        <!--Optional:-->
+        <SubdivisionCode>string</SubdivisionCode>
+        <IDChoice>
+            <!--You have a CHOICE of the next 2 items at this level-->
+            <UID>string</UID>
+            <UIDEpgu>100</UIDEpgu>
+        </IDChoice>
+    </Identification>
+</PackageData>

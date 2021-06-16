@@ -1,0 +1,10 @@
+<PackageData>
+  <CompetitiveGroupProgram>
+    <UIDCompetitiveGroup>string</UIDCompetitiveGroup>
+    <!--Optional:-->
+    <UIDSubdivisionOrg>string</UIDSubdivisionOrg>
+    <!--Optional:-->
+    <UIDEducationProgram>string</UIDEducationProgram>
+    <UID>string</UID>
+  </CompetitiveGroupProgram>
+</PackageData>

@@ -1,0 +1,9 @@
+<PackageData>
+    <TermsAdmission>
+        <UIDCampaign>{{uidcampaign}}</UIDCampaign>
+        <UID>{{uid}}</UID>
+        <Name>{{name}}</Name>
+        <StartEvent>{{startevent}}</StartEvent>
+        <EndEvent>{{endevent}}</EndEvent>
+    </TermsAdmission>
+</PackageData>

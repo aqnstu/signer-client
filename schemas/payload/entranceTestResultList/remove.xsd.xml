@@ -1,0 +1,6 @@
+<PackageData>
+  <!--1 or more repetitions:-->
+  <EntranceTestResult>
+    <UID>string</UID>
+  </EntranceTestResult>
+</PackageData>

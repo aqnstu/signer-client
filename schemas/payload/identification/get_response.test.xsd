@@ -1,0 +1,62 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="PackageData">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Identification">
+                    <xs:complexType>
+                        <xs:all>
+                            <xs:element name="IDEntrantChoice">
+                                <xs:complexType>
+                                    <xs:choice>
+                                        <xs:element name="GUID">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:maxLength value="36"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element type="xs:string" name="SNILS"/>
+                                    </xs:choice>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element type="xs:string" name="SNILS" minOccurs="0"/>
+                            <xs:element type="xs:integer" name="IDDocumentType"/>
+                            <xs:element type="xs:string" name="Surname"/>
+                            <xs:element name="Name">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:maxLength value="255"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element type="xs:string" name="Patronymic" minOccurs="0"/>
+                            <xs:element type="xs:string" name="DocSeries" minOccurs="0"/>
+                            <xs:element type="xs:string" name="DocNumber"/>
+                            <xs:element type="xs:string" name="DocOrganization"/>
+                            <xs:element type="xs:date" name="IssueDate"/>
+                            <xs:element type="xs:integer" name="IDOKCM"/>
+                            <xs:element type="xs:string" name="Base64File" minOccurs="0"/>
+                            <xs:element type="xs:string" name="FileType" minOccurs="0"/>
+                            <xs:element type="xs:string" name="SubdivisionCode" minOccurs="0"/>
+                            <xs:element type="xs:boolean" name="Checked"/>
+                            <xs:element name="IDChoice">
+                                <xs:complexType>
+                                    <xs:choice>
+                                        <xs:element name="UID">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:maxLength value="36"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element type="xs:integer" name="UIDEpgu"/>
+                                    </xs:choice>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:all>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

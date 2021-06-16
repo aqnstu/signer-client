@@ -1,0 +1,14 @@
+<PackageData>
+  <Document>
+    <IDEntrantChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <GUID>string</GUID>
+      <SNILS>string</SNILS>
+    </IDEntrantChoice>
+    <IDDocChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </IDDocChoice>
+  </Document>
+</PackageData>

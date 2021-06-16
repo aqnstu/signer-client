@@ -1,0 +1,24 @@
+<PackageData>
+  <EntranceTestAgreed>
+    <UIDEntranceTest>acceptance_test_ET_1</UIDEntranceTest>
+    <AgreedDate>2008-09-29</AgreedDate>
+    <IDEntranceTestAgreedChoice>
+      <UID>123123</UID>
+    </IDEntranceTestAgreedChoice>
+    <IDApplicationChoice>
+      <UID>123</UID>
+    </IDApplicationChoice>
+    <UIDEntranceTestLocation>acceptance_test_ETL_1</UIDEntranceTestLocation>
+  </EntranceTestAgreed>
+  <EntranceTestAgreed>
+    <IDEntranceTestAgreedChoice>
+      <UID>123123</UID>
+    </IDEntranceTestAgreedChoice>
+    <IDApplicationChoice>
+      <UIDEpgu>123123</UIDEpgu>
+    </IDApplicationChoice>
+    <UIDEntranceTestLocation>acceptance_test_ETL_1</UIDEntranceTestLocation>
+    <UIDEntranceTest>acceptance_test_ET_1</UIDEntranceTest>
+    <AgreedDate>2008-09-29</AgreedDate>
+  </EntranceTestAgreed>
+</PackageData>

@@ -1,0 +1,20 @@
+<PackageData>
+    <AdmissionVolume>
+        <UID>{{uid}}</UID>
+        <UIDCampaign>{{uidcampaign}}</UIDCampaign>
+        <IDDirection>{{iddirection}}</IDDirection>
+        <IDEducationLevel>{{ideducationlevel}}</IDEducationLevel>
+        <Budget_o>{{budget_o}}</Budget_o>
+        <Budget_oz>{{budget_oz}}</Budget_oz>
+        <Budget_z>{{budget_z}}</Budget_z>
+        <Quota_o>{{quota_o}}</Quota_o>
+        <Quota_oz>{{quota_oz}}</Quota_oz>
+        <Quota_z>{{quota_z}}</Quota_z>
+        <Paid_o>{{paid_o}}</Paid_o>
+        <Paid_oz>{{paid_oz}}</Paid_oz>
+        <Paid_z>{{paid_z}}</Paid_z>
+        <Target_o>{{target_o}}</Target_o>
+        <Target_oz>{{target_oz}}</Target_oz>
+        <Target_z>{{target_z}}</Target_z>
+    </AdmissionVolume>
+</PackageData>

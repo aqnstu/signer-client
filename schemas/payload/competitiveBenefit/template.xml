@@ -1,0 +1,13 @@
+<PackageData>
+    <CompetitiveBenefit>
+        <UIDCompetitiveGroup>{{uidcompetitivegroup}}</UIDCompetitiveGroup>
+        <IDBenefit>{{idbenefit}}</IDBenefit>
+        <IDOlympicDiplomaType>{{idolympicdiplomatype}}</IDOlympicDiplomaType>
+        <EgeMinValue>{{egeminvalue}}</EgeMinValue>
+        <IDOlympicType>{{idolympictype}}</IDOlympicType>
+        <IDOlympicLevels>
+            <IDOlympicLevel>{{idolympiclevel}}</IDOlympicLevel>
+        </IDOlympicLevels>
+        <UID>{{uid}}</UID>
+    </CompetitiveBenefit>
+</PackageData>

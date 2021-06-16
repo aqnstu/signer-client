@@ -1,0 +1,16 @@
+<PackageData>
+  <ApplicationsRating>
+    <UIDCompetitiveGroup>string</UIDCompetitiveGroup>
+    <TotalApplicationCount>100</TotalApplicationCount>
+    <AgreedCount>100</AgreedCount>
+    <Applications>
+      <!--1 or more repetitions:-->
+      <Application>
+        <UIDEpgu>10</UIDEpgu>
+        <CGAppListPlace>100</CGAppListPlace>
+        <AgreedPlace>100</AgreedPlace>
+        <AgreedPlaceChange>100</AgreedPlaceChange>
+      </Application>
+    </Applications>
+  </ApplicationsRating>
+</PackageData>

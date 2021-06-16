@@ -1,0 +1,41 @@
+<PackageData>
+  <!--0 to 10 repetitions:-->
+  <OrderAdmission>
+    <UID>string</UID>
+    <UIDCampaign>string</UIDCampaign>
+    <IDEducationForm>3</IDEducationForm>
+    <IDEducationSource>3</IDEducationSource>
+    <IDEducationLevel>3</IDEducationLevel>
+    <OrderName>string</OrderName>
+    <OrderNumber>string</OrderNumber>
+    <OrderDate>2008-09-29T05:49:45</OrderDate>
+    <!--Optional:-->
+    <Published>2014-09-19T03:18:33</Published>
+    <IDOrderAdmissionStatus>3</IDOrderAdmissionStatus>
+    <IDOrderAdmissionType>3</IDOrderAdmissionType>
+    <PreferentialOrder>true</PreferentialOrder>
+    <Foreigners>false</Foreigners>
+    <!--Optional:-->
+    <AddApplications>
+      <!--1 or more repetitions:-->
+      <Application>
+        <IDApplicationChoice>
+          <!--You have a CHOICE of the next 2 items at this level-->
+          <UID>string</UID>
+          <UIDEpgu>100</UIDEpgu>
+        </IDApplicationChoice>
+      </Application>
+    </AddApplications>
+    <!--Optional:-->
+    <RemoveApplications>
+      <!--1 or more repetitions:-->
+      <Application>
+        <IDApplicationChoice>
+          <!--You have a CHOICE of the next 2 items at this level-->
+          <UID>string</UID>
+          <UIDEpgu>100</UIDEpgu>
+        </IDApplicationChoice>
+      </Application>
+    </RemoveApplications>
+  </OrderAdmission>
+</PackageData>

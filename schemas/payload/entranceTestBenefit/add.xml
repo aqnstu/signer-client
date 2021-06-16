@@ -1,0 +1,23 @@
+<PackageData>
+  <EntranceTestBenefit>
+    <UID>string</UID>
+    <UIDEntranceTest>string</UIDEntranceTest>
+    <IDBenefit>100</IDBenefit>
+    <IDOlympicDiplomaType>100</IDOlympicDiplomaType>
+    <!--Optional:-->
+    <OlympicClasses>
+      <!--1 or more repetitions:-->
+      <OlympicClass>100</OlympicClass>
+    </OlympicClasses>
+    <!--Optional:-->
+    <IDOlympicLevels>
+      <!--1 or more repetitions:-->
+      <IDOlympicLevel>100</IDOlympicLevel>
+    </IDOlympicLevels>
+    <OlympicProfiles>
+      <!--Zero or more repetitions:-->
+      <IDOlympicProfile>100</IDOlympicProfile>
+    </OlympicProfiles>
+    <EgeMinValue>100</EgeMinValue>
+  </EntranceTestBenefit>
+</PackageData>

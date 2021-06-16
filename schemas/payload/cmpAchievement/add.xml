@@ -1,0 +1,9 @@
+<PackageData>
+  <CmpAchievement>
+    <UIDCampaign>string</UIDCampaign>
+    <UID>string</UID>
+    <IDCategory>100</IDCategory>
+    <Name>string</Name>
+    <MaxValue>100</MaxValue>
+  </CmpAchievement>
+</PackageData>

@@ -1,0 +1,14 @@
+<PackageData>
+  <TermsAdmission>
+    <UIDCampaign>string</UIDCampaign>
+    <UID>string</UID>
+    <Name>string</Name>
+    <!--Optional:-->
+    <IDTermsLfs>100</IDTermsLfs>
+    <!--Optional:-->
+    <IDStage>100</IDStage>
+    <!--Optional:-->
+    <StartEvent>2008-09-29T05:49:45+00:00</StartEvent>
+    <EndEvent>2014-09-19T03:18:33+00:00</EndEvent>
+  </TermsAdmission>
+</PackageData>

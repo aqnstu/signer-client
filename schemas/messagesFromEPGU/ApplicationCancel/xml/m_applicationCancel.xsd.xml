@@ -1,0 +1,7 @@
+<PackageData>
+  <AppCancel>
+    <UIDEpgu>100</UIDEpgu>
+    <IDStatus>100</IDStatus>
+    <Status>string</Status>
+  </AppCancel>
+</PackageData>

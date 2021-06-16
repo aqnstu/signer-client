@@ -1,0 +1,21 @@
+<PackageData>
+    <Campaign>
+        <UID>{{uid}}</UID>
+        <Name>{{name}}</Name>
+        <YearStart>{{yearstart}}</YearStart>
+        <YearEnd>{{yearend}}</YearEnd>
+        <EducationForms>
+            <IDEducationForm>{{ideducationform1}}</IDEducationForm>
+            <IDEducationForm>{{ideducationform2}}</IDEducationForm>
+        </EducationForms>
+        <EducationLevels>
+            <IDEducationLevel>{{ideducationlevel1}}</IDEducationLevel>
+            <IDEducationLevel>{{ideducationlevel2}}</IDEducationLevel>
+        </EducationLevels>
+        <IDCampaignType>{{idcampaigntype}}</IDCampaignType>
+        <IDCampaignStatus>{{idcampaignstatus}}</IDCampaignStatus>
+        <NumberAgree>{{numberagree}}</NumberAgree>
+        <CountDirections>{{countdirections}}</CountDirections>
+        <EndDate>{{enddate}}</EndDate>
+    </Campaign>
+</PackageData>

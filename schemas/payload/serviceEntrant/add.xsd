@@ -1,0 +1,76 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="PackageData">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="ServiceEntrant">
+                    <xs:complexType>
+                        <xs:all>
+                            <xs:element name="IDEntrantChoice">
+                                <xs:complexType>
+                                    <xs:choice>
+                                        <xs:element name="GUID" />
+                                        <xs:element type="xs:string" name="SNILS" />
+                                        <xs:element name="Passport" >
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element type="xs:string" name="Name"/>
+                                                    <xs:element type="xs:string" name="Surname"/>
+                                                    <xs:element type="xs:string" name="Patronymic"/>
+                                                    <xs:element type="xs:string" name="Series"/>
+                                                    <xs:element type="xs:string" name="Number"/>
+                                                    <xs:element type="xs:date" name="Birthday"/>
+                                                    <xs:element type="xs:date" name="IssueDate"/>
+                                                    <xs:element type="xs:integer" name="IDOKCM"/>
+                                                    <xs:element type="xs:string" name="DocOrganization"/>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:choice>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element type="xs:string" name="Surname"/>
+                            <xs:element name="Name">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:maxLength value="255"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element type="xs:string" name="Patronymic" minOccurs="0"/>
+                            <xs:element type="xs:integer" name="IDGender"/>
+                            <xs:element type="xs:dateTime" name="Birthday"/>
+                            <xs:element type="xs:string" name="Birthplace"/>
+                            <xs:element type="xs:string" name="Phone" minOccurs="0"/>
+                            <xs:element type="xs:string" name="Email" minOccurs="0"/>
+                            <xs:element name="Addresses">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Address"  minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element type="xs:string" name="FullAddr"/>
+                                                    <xs:element type="xs:int" name="IndexAddr"/>
+                                                    <xs:element type="xs:boolean" name="IsRegistration"/>
+                                                    <xs:element type="xs:integer" name="IDRegion"/>
+                                                    <xs:element type="xs:string" name="Area" minOccurs="0"/>
+                                                    <xs:element type="xs:string" name="City" minOccurs="0"/>
+                                                    <xs:element type="xs:string" name="Place" minOccurs="0"/>
+                                                    <xs:element type="xs:string" name="CityArea" minOccurs="0"/>
+                                                    <xs:element type="xs:string" name="Street"/>
+                                                    <xs:element type="xs:string" name="House"/>
+                                                    <xs:element type="xs:string" name="Building1" minOccurs="0"/>
+                                                    <xs:element type="xs:string" name="Building2" minOccurs="0"/>
+                                                    <xs:element type="xs:string" name="Apartment" minOccurs="0"/>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:all>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

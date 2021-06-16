@@ -1,0 +1,13 @@
+<PackageData>
+    <EntranceTest>
+        <UID>{{uid}}</UID>
+        <UIDCompetitiveGroup>{{uidcompetitivegroup}}</UIDCompetitiveGroup>
+        <IDEntranceTestType>{{identrancetesttype}}</IDEntranceTestType>
+        <TestName>{{testname}}</TestName>
+        <IsEge>{{isege}}</IsEge>
+        <MinScore>{{minscore}}</MinScore>
+        <Priority>{{priority}}</Priority>
+        <IDSubject>{{idsubject}}</IDSubject>
+        <UIDReplaceEntranceTest>{{uidreplaceentrancetest}}</UIDReplaceEntranceTest>
+    </EntranceTest>
+</PackageData>

@@ -1,0 +1,27 @@
+<PackageData>
+	<Document>
+		<SNILS>10</SNILS>
+		<IDEntrantChoice>
+			<UID>string</UID>
+		</IDEntrantChoice>
+		<IDIdentificationChoice>
+			<UID>string</UID>
+		</IDIdentificationChoice>
+		<IDDocumentCategory>12</IDDocumentCategory>
+		<IDDocumentType>100</IDDocumentType>
+		<Name>string</Name>
+		<Series>string</Series>
+		<Number>string</Number>
+		<IssueDate>2008-09-29</IssueDate>
+		<IssueOrg>string</IssueOrg>
+		<DocumentCategoryFields>
+			<RegisterNumber1>string</RegisterNumber1>
+			<Mark>100</Mark>
+			<ResultDate>2008-09-29</ResultDate>
+		</DocumentCategoryFields>
+		<Base64File>string</Base64File>
+		<IDChoice>
+			<UID>string</UID>
+		</IDChoice>
+	</Document>
+</PackageData>

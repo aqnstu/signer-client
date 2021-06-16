@@ -1,0 +1,9 @@
+<PackageData>
+    <CmpAchievement>
+        <UIDCampaign>{{uidcampaign}}</UIDCampaign>
+        <UID>{{uid}}</UID>
+        <IDCategory>{{idcategory}}</IDCategory>
+        <Name>{{name}}</Name>
+        <MaxValue>{{maxvalue}}</MaxValue>
+    </CmpAchievement>
+</PackageData>

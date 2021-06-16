@@ -1,0 +1,29 @@
+<PackageData>
+  <AppAchievement>
+    <ApplicationIDChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </ApplicationIDChoice>
+    <AppAchievementIDChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </AppAchievementIDChoice>
+    <CmpAchievementUID>100</CmpAchievementUID>
+    <Name>string</Name>
+    <Mark>1.5E2</Mark>
+    <ExistDocumentOrFileChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <DocumentAchievementIDChoice>
+        <!--You have a CHOICE of the next 2 items at this level-->
+        <UID>string</UID>
+        <UIDEpgu>100</UIDEpgu>
+      </DocumentAchievementIDChoice>
+      <File>
+        <Base64>string</Base64>
+        <FileType>string</FileType>
+      </File>
+    </ExistDocumentOrFileChoice>
+  </AppAchievement>
+</PackageData>

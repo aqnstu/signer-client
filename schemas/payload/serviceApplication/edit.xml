@@ -1,0 +1,159 @@
+<PackageData>
+    <ServiceApplication>
+        <IDEntrantChoice>
+            <!--Optional:-->
+            <GUID>string</GUID>
+            <!--Optional:-->
+            <SNILS>string</SNILS>
+            <!--Optional:-->
+            <Passport>
+                <Name>string</Name>
+                <Surname>string</Surname>
+                <Patronymic>string</Patronymic>
+                <Series>string</Series>
+                <Number>string</Number>
+                <Birthday>2008-09-29</Birthday>
+            </Passport>
+        </IDEntrantChoice>
+        <UIDCompetitiveGroup>string</UIDCompetitiveGroup>
+        <!--Optional:-->
+        <UIDCompetitiveGroupTarget>string</UIDCompetitiveGroupTarget>
+        <AppNumber>string</AppNumber>
+        <RegistrationDate>2014-09-19T03:18:33</RegistrationDate>
+        <!--Optional:-->
+        <Rating>1.5E2</Rating>
+        <Priority>100</Priority>
+        <FirstHigherEducation>true</FirstHigherEducation>
+        <!--Optional:-->
+        <NeedHostel>false</NeedHostel>
+        <!--Optional:-->
+        <DisabledDocumentChoice>
+            <!--You have a CHOICE of the next 2 items at this level-->
+            <UID>string</UID>
+            <UIDEpgu>100</UIDEpgu>
+        </DisabledDocumentChoice>
+        <!--Optional:-->
+        <SpecialConditions>false</SpecialConditions>
+        <!--Optional:-->
+        <Agree>false</Agree>
+        <!--Optional:-->
+        <AgreeDate>2013-05-22+04:00</AgreeDate>
+        <!--Optional:-->
+        <IDReturnType>100</IDReturnType>
+        <!--Optional:-->
+        <ReturnDate>2002-11-05+03:00</ReturnDate>
+        <!--Optional:-->
+        <IDBenefit>100</IDBenefit>
+        <!--Optional:-->
+        <StatusComment>string</StatusComment>
+        <IDApplicationChoice>
+            <!--You have a CHOICE of the next 2 items at this level-->
+            <UID>string</UID>
+            <UIDEpgu>100</UIDEpgu>
+        </IDApplicationChoice>
+        <!--Optional:-->
+        <Documents>
+            <Identification>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Identification>
+            <Educations>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Educations>
+            <Ege>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Ege>
+            <!--Optional:-->
+            <Compatriot>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Compatriot>
+            <!--Optional:-->
+            <Composition>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Composition>
+            <!--Optional:-->
+            <Disability>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Disability>
+            <!--Optional:-->
+            <Militaries>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Militaries>
+            <!--Optional:-->
+            <Olympics>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Olympics>
+            <!--Optional:-->
+            <Orphans>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Orphans>
+            <!--Optional:-->
+            <Other>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Other>
+            <!--Optional:-->
+            <ParentsLost>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </ParentsLost>
+            <!--Optional:-->
+            <RadiationWork>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </RadiationWork>
+            <!--Optional:-->
+            <Veteran>
+                <IDChoice>
+                    <!--You have a CHOICE of the next 2 items at this level-->
+                    <UID>string</UID>
+                    <UIDEpgu>100</UIDEpgu>
+                </IDChoice>
+            </Veteran>
+        </Documents>
+    </ServiceApplication>
+</PackageData>

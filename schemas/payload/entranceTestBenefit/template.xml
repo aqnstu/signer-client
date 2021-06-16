@@ -1,0 +1,15 @@
+<PackageData>
+    <EntranceTestBenefit>
+        <UID>{{uid}}</UID>
+        <UIDEntranceTest>{{uidentrancetest}}</UIDEntranceTest>
+        <IDBenefit>{{idbenefit}}</IDBenefit>
+        <IDOlympicDiplomaType>{{idolympicdiplomatype}}</IDOlympicDiplomaType>
+        <IDOlympicLevels>
+            <IDOlympicLevel>{{idolympiclevel}}</IDOlympicLevel>
+        </IDOlympicLevels>
+        <OlympicProfiles>
+            <IDOlympicProfile>{{idolympicprofile}}</IDOlympicProfile>
+        </OlympicProfiles>
+        <EgeMinValue>{{egeminvalue}}</EgeMinValue>
+    </EntranceTestBenefit>
+</PackageData>

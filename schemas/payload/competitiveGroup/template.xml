@@ -1,0 +1,13 @@
+<PackageData>
+    <CompetitiveGroup>
+        <UID>{{uid}}</UID>
+        <UIDCampaign>{{uidcampaign}}</UIDCampaign>
+        <Name>{{name}}</Name>
+        <IDLevelBudget>{{idlevelbudget}}</IDLevelBudget>
+        <IDEducationLevel>{{ideducationlevel}}</IDEducationLevel>
+        <IDEducationSource>{{ideducationsource}}</IDEducationSource>
+        <IDEducationForm>{{ideducationform}}</IDEducationForm>
+        <IDOCSO>{{idocso}}</IDOCSO>
+        <AdmissionNumber>{{admissionnumber}}</AdmissionNumber>
+    </CompetitiveGroup>
+</PackageData>

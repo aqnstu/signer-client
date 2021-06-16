@@ -1,0 +1,40 @@
+<PackageData>
+  <Document>
+    <IDEntrantChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <GUID>string</GUID>
+      <SNILS>string</SNILS>
+    </IDEntrantChoice>
+    <IDIdentificationChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </IDIdentificationChoice>
+    <IDDocChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </IDDocChoice>
+    <IDDocumentVersion>100</IDDocumentVersion>
+    <!--Optional:-->
+    <IDDocumentType>100</IDDocumentType>
+    <Name>string</Name>
+    <!--Optional:-->
+    <Series>string</Series>
+    <!--Optional:-->
+    <Number>string</Number>
+    <!--Optional:-->
+    <IssueDate>2008-09-29</IssueDate>
+    <!--Optional:-->
+    <IssueOrg>string</IssueOrg>
+    <!--Optional:-->
+    <DocumentVersionFields>
+      <!--You may enter ANY elements at this point-->
+      <AnyElement/>
+    </DocumentVersionFields>
+    <!--Optional:-->
+    <Base64File>string</Base64File>
+    <!--Optional:-->
+    <FileType>string</FileType>
+  </Document>
+</PackageData>

@@ -1,0 +1,21 @@
+<PackageData>
+  <CompetitiveBenefit>
+    <UIDCompetitiveGroup>string</UIDCompetitiveGroup>
+    <IDBenefit>100</IDBenefit>
+    <IDOlympicDiplomaType>100</IDOlympicDiplomaType>
+    <!--Optional:-->
+    <EgeMinValue>100</EgeMinValue>
+    <IDOlympicType>100</IDOlympicType>
+    <!--Optional:-->
+    <IDOlympicLevels>
+      <!--1 or more repetitions:-->
+      <IDOlympicLevel>100</IDOlympicLevel>
+    </IDOlympicLevels>
+    <!--Optional:-->
+    <OlympicProfiles>
+      <!--1 or more repetitions:-->
+      <IDOlympicProfile>100</IDOlympicProfile>
+    </OlympicProfiles>
+    <UID>string</UID>
+  </CompetitiveBenefit>
+</PackageData>

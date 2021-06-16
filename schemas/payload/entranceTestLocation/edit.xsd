@@ -1,0 +1,25 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="PackageData">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="EntranceTestLocation">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="UID">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:maxLength value="36"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+							<xs:element type="xs:string" name="UIDEntranceTest"/>
+							<xs:element type="xs:dateTime" name="TestDate"/>
+							<xs:element type="xs:string" name="TestLocation"/>
+							<xs:element type="xs:integer" name="EntrantsCount"/>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

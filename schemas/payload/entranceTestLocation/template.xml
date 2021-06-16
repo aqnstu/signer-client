@@ -1,0 +1,9 @@
+<PackageData>
+    <EntranceTestLocation>
+        <UID>{{uid}}</UID>
+        <UIDEntranceTest>{{uidentrancetest}}</UIDEntranceTest>
+        <TestDate>{{testdate}}</TestDate>
+        <TestLocation>{{testlocation}}</TestLocation>
+        <EntrantsCount>{{entrantscount}}</EntrantsCount>
+    </EntranceTestLocation>
+</PackageData>

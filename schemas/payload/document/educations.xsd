@@ -1,0 +1,11 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="DocumentCategoryFields">
+		<xs:complexType>
+			<xs:all>
+				<xs:element type="xs:string" name="RegisterNumber"/>
+				<xs:element type="xs:integer" name="IDOkso"/>
+				<xs:element type="xs:integer" name="IDEducationLevel"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

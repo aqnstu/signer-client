@@ -1,0 +1,350 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="PackageData">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="ServiceApplication">
+                    <xs:complexType>
+                        <xs:all>
+                            <xs:element name="IDEntrantChoice">
+                                <xs:complexType>
+                                    <xs:choice>
+                                        <xs:element name="GUID" >
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:maxLength value="36"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element type="xs:string" name="SNILS" />
+                                        <xs:element name="Passport" >
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element type="xs:string" name="Name"/>
+                                                    <xs:element type="xs:string" name="Surname"/>
+                                                    <xs:element type="xs:string" name="Patronymic"/>
+                                                    <xs:element type="xs:string" name="Series"/>
+                                                    <xs:element type="xs:string" name="Number"/>
+                                                    <xs:element type="xs:date" name="Birthday"/>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:choice>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element type="xs:string" name="UIDCompetitiveGroup"/>
+                            <xs:element type="xs:string" name="UIDCompetitiveGroupTarget" minOccurs="0"/>
+                            <xs:element type="xs:string" name="AppNumber"/>
+                            <xs:element type="xs:dateTime" name="RegistrationDate"/>
+                            <xs:element type="xs:integer" name="Rating" minOccurs="0"/>
+                            <xs:element type="xs:integer" name="Priority"/>
+                            <xs:element type="xs:boolean" name="FirstHigherEducation"/>
+                            <xs:element type="xs:boolean" name="NeedHostel"/>
+                            <xs:element name="DisabledDocumentChoice" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:choice>
+                                        <xs:element name="UID">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:maxLength value="36"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element type="xs:integer" name="UIDEpgu"/>
+                                    </xs:choice>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element type="xs:boolean" name="SpecialConditions" minOccurs="0"/>
+                            <xs:element type="xs:boolean" name="Agree" minOccurs="0"/>
+                            <xs:element type="xs:date" name="AgreeDate" minOccurs="0"/>
+                            <xs:element type="xs:integer" name="IDReturnType" minOccurs="0"/>
+                            <xs:element type="xs:date" name="ReturnDate" minOccurs="0"/>
+                            <xs:element type="xs:integer" name="IDBenefit" minOccurs="0"/>
+                            <xs:element type="xs:string"  name="StatusComment" minOccurs="0"/>
+                            <xs:element type="xs:integer" name="IDStatus"/>
+                            <xs:element name="IDApplicationChoice" >
+                                <xs:complexType>
+                                    <xs:choice>
+                                        <xs:element name="UID">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:maxLength value="36"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element type="xs:integer" name="UIDEpgu"/>
+                                    </xs:choice>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Documents" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:all>
+                                        <xs:element name="Identification">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Educations">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Ege">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Compatriot" minOccurs="0" >
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Composition" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Disability" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Militaries" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Olympics" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Orphans" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Other" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="ParentsLost" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="RadiationWork" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Veteran" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <xs:element name="IDChoice">
+                                                        <xs:complexType>
+                                                            <xs:choice>
+                                                                <xs:element name="UID">
+                                                                    <xs:simpleType>
+                                                                        <xs:restriction base="xs:string">
+                                                                            <xs:maxLength value="36"/>
+                                                                        </xs:restriction>
+                                                                    </xs:simpleType>
+                                                                </xs:element>
+                                                                <xs:element type="xs:integer" name="UIDEpgu"/>
+                                                            </xs:choice>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:all>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:all>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

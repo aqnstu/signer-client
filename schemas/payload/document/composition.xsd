@@ -1,0 +1,13 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="DocumentCategoryFields">
+		<xs:complexType>
+			<xs:all>
+				<xs:element type="xs:integer" name="IDCompositionTheme"/>
+				<xs:element type="xs:boolean" name="Result"/>
+				<xs:element type="xs:integer" name="Year"/>
+				<xs:element type="xs:boolean" name="HasAppealed"/>
+				<xs:element type="xs:integer" name="IDAppealStatus"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

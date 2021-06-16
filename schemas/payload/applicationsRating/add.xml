@@ -1,0 +1,8 @@
+<PackageData>
+  <ApplicationsRatingPackage>
+    <Name>string</Name>
+    <UID>string</UID>
+    <Base64File>string</Base64File>
+    <FileType>string</FileType>
+  </ApplicationsRatingPackage>
+</PackageData>

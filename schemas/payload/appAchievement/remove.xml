@@ -1,0 +1,14 @@
+<PackageData>
+  <AppAchievement>
+    <ApplicationIDChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </ApplicationIDChoice>
+    <AchievementIDChoice>
+      <!--You have a CHOICE of the next 2 items at this level-->
+      <UID>string</UID>
+      <UIDEpgu>100</UIDEpgu>
+    </AchievementIDChoice>
+  </AppAchievement>
+</PackageData>
