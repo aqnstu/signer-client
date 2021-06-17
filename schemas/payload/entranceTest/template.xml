@@ -1,13 +1,17 @@
 <PackageData>
-    <EntranceTest>
-        <UID>{{uid}}</UID>
-        <UIDCompetitiveGroup>{{uidcompetitivegroup}}</UIDCompetitiveGroup>
-        <IDEntranceTestType>{{identrancetesttype}}</IDEntranceTestType>
-        <TestName>{{testname}}</TestName>
-        <IsEge>{{isege}}</IsEge>
-        <MinScore>{{minscore}}</MinScore>
-        <Priority>{{priority}}</Priority>
-        <IDSubject>{{idsubject}}</IDSubject>
+<EntranceTest>
+    <UID>{{uid}}</UID>
+    <UIDCompetitiveGroup>{{uidcompetitivegroup}}</UIDCompetitiveGroup>
+    <IDEntranceTestType>{{identrancetesttype}}</IDEntranceTestType>
+    <TestName>{{testname}}</TestName>
+    <IsEge>{{isege}}</IsEge>
+    <MinScore>{{minscore}}</MinScore>
+    <Priority>{{priority}}</Priority>
+    <IDSubject>{{idsubject}}</IDSubject>
+    {% if uidreplaceentrancetest is not none %}
         <UIDReplaceEntranceTest>{{uidreplaceentrancetest}}</UIDReplaceEntranceTest>
-    </EntranceTest>
+    {% else %}
+
+    {% endif %}
+</EntranceTest>
 </PackageData>

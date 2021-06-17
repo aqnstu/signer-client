@@ -9,7 +9,7 @@ import time
 import xmltodict
 import yaml
 
-from config import TEST
+from config import API_BASE_URL, TEST
 from signer import create_jwt_via_api
 from log import logger
 
@@ -261,7 +261,12 @@ def get_info_from_query(id_jwt: int = 0, get_all_messages=False, queue="service"
             },
             headers={"Content-Type": "application/json"},
         )
-    return resp.json()
+    try:
+        return resp.json()
+    except:
+        logger.error(resp.text)
+        return None
+
 
 
 def entity(action: str, entity_type: str, record: dict = None):
@@ -332,12 +337,22 @@ def entity(action: str, entity_type: str, record: dict = None):
                 raise ValueError(
                     "Что-то пошло не так с получением данных, посмотрите лог!"
                 )
-            data = decode_base64_dict_to_utf8(
-                get_info_from_query(id_jwt=int(id_jwt))
-            )
+            time.sleep(0.2)
+            info = get_info_from_query(id_jwt=int(id_jwt))
+            if info.get("error"):
+                logger.error(
+                    f"Данные еще не поступили в очередь ({entity_type} | {action} | {id_jwt}) или очередь недоступна"
+                )
+                return {
+                    "status": "unknown",
+                    "id_jwt": id_jwt,
+                    "entity_type": None,
+                    "data": None,
+                }
+            data = decode_base64_dict_to_utf8(info)
             if data["header"].get("payloadType") == "success":
                 return {
-                    "success": True,
+                    "status": "success",
                     "id_jwt": id_jwt,
                     "entity_type": data["header"].get("subdivisionOrg"),
                     "data": ordereddict_to_dict(xmltodict.parse(data["payload"]))[
@@ -347,7 +362,7 @@ def entity(action: str, entity_type: str, record: dict = None):
             else:
                 logger.info(f"{id_jwt} -- {data['payload']}")
                 return {
-                    "success": False,
+                    "status": "failure",
                     "id_jwt": id_jwt,
                     "entity_type": data["header"].get("subdivisionOrg"),
                     "data": None,
@@ -358,12 +373,22 @@ def entity(action: str, entity_type: str, record: dict = None):
                 raise ValueError(
                     "Что-то пошло не так с удалением данных, посмотрите лог!"
                 )
-            data = decode_base64_dict_to_utf8(
-                get_info_from_query(id_jwt=int(id_jwt))
-            )
+            time.sleep(0.2)
+            info = get_info_from_query(id_jwt=int(id_jwt))
+            if info.get("error"):
+                logger.error(
+                    f"Данные еще не поступили в очередь ({entity_type} | {action} | {id_jwt}) или очередь недоступна"
+                )
+                return {
+                    "status": "unknown",
+                    "id_jwt": id_jwt,
+                    "entity_type": None,
+                    "data": None,
+                }
+            data = decode_base64_dict_to_utf8(info)
             if data["header"].get("payloadType") == "success":
                 return {
-                    "success": True,
+                    "status": "success",
                     "id_jwt": id_jwt,
                     "entity_type": data["header"].get("entityType"),
                     "data": None,
@@ -371,44 +396,44 @@ def entity(action: str, entity_type: str, record: dict = None):
             else:
                 logger.info(f"{id_jwt} -- {data['payload']}")
                 return {
-                    "success": False,
+                    "status": "failure",
                     "id_jwt": id_jwt,
-                    "entity_type": data["header"].get("entityType"),
+                    "entity_type": data["header"].get("subdivisionOrg"),
                     "data": None,
                 }
     elif action in ("add", "edit"):
         if not record:
             raise ValueError("Нет записи record для добавления или модификации данных!")
         record_lower = lower_dict_keys(record)
-        with open(
-            os.path.join("schemas", "payload", entity_type, "template.xml")
-        ) as f:
+        with open(os.path.join("schemas", "payload", entity_type, "template.xml")) as f:
             file = f.read()
-        file_no_ws = re.sub(r"\s+", "", file)
-        temp = jinja2.Template(file_no_ws)
-        payload = temp.render(**record_lower)
+        temp = jinja2.Template(file)
+        payload_raw = temp.render(**record_lower)
+        payload = re.sub(r"\s+", "", payload_raw)
         if action == "add":
             id_jwt = modify_data(
                 action=action, entity_type=entity_type, payload=payload
             )
-            print(id_jwt)
             if not id_jwt:
                 raise ValueError(
                     "Что-то пошло не так с добавлением данных, посмотрите лог!"
                 )
-            # info = get_info_from_query(id_jwt=int(id_jwt))
-            # print(info)
-            # if info.get('error'):
-            #     logger.warning(
-            #         f"Данные еще не поступили в очередь ({entity_type} | {action})"
-            #     )
-            #     time.sleep(0.3)
-            data = decode_base64_dict_to_utf8(
-                get_info_from_query(id_jwt=int(id_jwt))
-            )
+            time.sleep(0.2)
+            info = get_info_from_query(id_jwt=int(id_jwt))
+            if info.get("error"):
+                logger.warning(
+                    f"Данные еще не поступили в очередь ({entity_type} | {action} | {id_jwt}) или очередь недоступна"
+                )
+                return {
+                    "status": "unknown",
+                    "id_jwt": id_jwt,
+                    "entity_type": None,
+                    "data": None,
+                }
+            data = decode_base64_dict_to_utf8(info)
             if data["header"].get("payloadType") == "success":
                 return {
-                    "success": True,
+                    "status": "success",
                     "id_jwt": id_jwt,
                     "entity_type": data["header"].get("entityType"),
                     "data": None,
@@ -416,7 +441,7 @@ def entity(action: str, entity_type: str, record: dict = None):
             else:
                 logger.info(f"{id_jwt} -- {data['payload']}")
                 return {
-                    "success": False,
+                    "status": "failure",
                     "id_jwt": id_jwt,
                     "entity_type": data["header"].get("entityType"),
                     "data": None,
@@ -429,12 +454,22 @@ def entity(action: str, entity_type: str, record: dict = None):
                 raise ValueError(
                     "Что-то пошло не так с модификацией данных, посмотрите лог!"
                 )
-            data = decode_base64_dict_to_utf8(
-                get_info_from_query(id_jwt=int(id_jwt))
-            )
+            time.sleep(0.2)
+            info = get_info_from_query(id_jwt=int(id_jwt))
+            if info.get("error"):
+                logger.warning(
+                    f"Данные еще не поступили в очередь ({entity_type} | {action} | {id_jwt}) или очередь недоступна"
+                )
+                return {
+                    "status": "unknown",
+                    "id_jwt": id_jwt,
+                    "entity_type": None,
+                    "data": None,
+                }
+            data = decode_base64_dict_to_utf8(info)
             if data["header"].get("payloadType") == "success":
                 return {
-                    "success": True,
+                    "status": "success",
                     "id_jwt": id_jwt,
                     "entity_type": data["header"].get("entityType"),
                     "data": None,
@@ -442,14 +477,11 @@ def entity(action: str, entity_type: str, record: dict = None):
             else:
                 logger.info(f"{id_jwt} -- {data['payload']}")
                 return {
-                    "success": False,
+                    "status": "failure",
                     "id_jwt": id_jwt,
                     "entity_type": data["header"].get("entityType"),
                     "data": None,
                 }
-
-
-
 
 
 def confirm_of_getting_data(id_jwt: int):
@@ -496,7 +528,7 @@ def confirm_all(queue="service"):
 
     if id_jwt_list:
         for id_jwt in id_jwt_list:
-            query_data = get_info_from_query(id_jwt=id_jwt)
+            query_data = get_info_from_query(id_jwt=id_jwt,  queue=queue)
             confirm_data = confirm_of_getting_data(id_jwt=id_jwt)
             s = f"{id_jwt} -- {decode_base64_dict_to_utf8(query_data)} -- {confirm_data}"
             logger.info(s)
@@ -506,15 +538,83 @@ def confirm_all(queue="service"):
         return False
 
 
-if __name__ == '__main__':
-    # print(
-    #     entity(
-    #         action="get",
-    #         entity_type='subdivisionOrg',
-    #         record={"UID": 2157296801, "Name": "Систем сбора и обработки данных"},
-    #     )
-    # )
+def get_data_from_db(entity_type: str, skip: int = 0, limit: int = 20000, stage: int = None) -> list:
+    if entity_type not in (
+        "subdivisionOrg",
+        "educationProgram",
+        "campaign",
+        "cmpAchievement",
+        "admissionVolume",
+        "distributedAdmissionVolume",
+        "termsAdmission",
+        "competitiveGroup",
+        "competitiveGroupProgram",
+        "competitiveBenefit",
+        "entranceTest",
+        "entranceTestBenefit",
+        "entranceTestLocation",
+    ):
+        raise ValueError(
+            f"entity_type {entity_type} не поддерживается, проверьте название сущности!"
+        )
+
+    translator = {
+        "subdivisionOrg": "/api/db/get-subdivision-org",
+        "educationProgram": "/api/db/get-education-program",
+        "campaign": "/api/db/get-campaign",
+        "cmpAchievement": "/api/db/get-cmp-achievement",
+        "admissionVolume": "/api/db/get-admission-volume",
+        "distributedAdmissionVolume": "/api/db/get-distributed-admission-volume",
+        "termsAdmission": "/api/db/get-terms-admission",
+        "competitiveGroup": "/api/db/get-competitive-group",
+        "competitiveGroupProgram": "/api/db/get-competitive-group-program",
+        "competitiveBenefit": "/api/db/get-competitive-benefit",
+        "entranceTest": "/api/db/get-entrance-test",
+        "entranceTestBenefit": "/api/db/get-entrance-test-benefit",
+        "entranceTestLocation": "/api/db/get-entrance-test-location",
+    }
+
+    if entity_type == "entranceTest":
+        resp = r.get(
+            f"{API_BASE_URL}{translator[entity_type]}",
+            params={'skip': skip, 'limit': limit, 'stage': stage},
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            return resp.json()
+        except:
+            logger.error(resp.text)
+            return None
+    
+    resp = r.get(
+        f"{API_BASE_URL}{translator[entity_type]}",
+        params={'skip': skip, 'limit': limit},
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        return resp.json()
+    except:
+        logger.error(resp.text)
+        return None
+
+
+if __name__ == "__main__":
+    print(
+        entity(
+            action="get",
+            entity_type="termsAdmission",
+            record={"UID": 2609534405},
+        )
+    )
     # confirm_all()
-    # print(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1068416))
+    # print(get_info_from_query(get_all_messages=False, queue='epgu'))
     # print(get_data('subdivisionOrg', '2157296801'))
-    print(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1068437))
+    # print(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1068437))
+    # d = get_data_from_db(entity_type='campaign')
+    # for el in d:
+    #     print(el)
+    #     print(entity(action="get", entity_type="campaign", record=el))
+    # confirm_all()
+
+    print(decode_str_to_utf8(get_sprav_by_name(name='TermsAdmissionMatches')))
+
