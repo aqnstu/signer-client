@@ -1,3 +1,4 @@
+# coding: utf-8
 import requests as r
 import json
 

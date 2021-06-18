@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -
-from requests.api import get
 import base64
 import jinja2
 import os
-import re
+
+# import re
 import requests as r
 import time
 import xmltodict
 import yaml
 
 from config import API_BASE_URL, TEST
-from signer import create_jwt_via_api
+from db import session
 from log import logger
+from models import Datatype, Jwt, JwtJob
+from signer import create_jwt_via_api
 
 
 def ordereddict_to_dict(ordered_dict):
@@ -79,10 +81,13 @@ def decode_base64_dict_to_utf8(d: dict) -> dict:
     """
     Декодирование словаря c JWT строками в UTF-8
     """
+    if d.get('error'):
+        return None
     d_values = list(d.values())
     if not d_values:
         raise ValueError("Неверный словарь на входе!")
     s_split = safe_split(d_values[0], sep=".")[:-1]
+    print(s_split)
     return {
         "header": yaml.safe_load(base64.b64decode(s_split[0]).decode("utf-8")),
         "payload": base64.b64decode(s_split[1]).decode("utf-8"),
@@ -268,7 +273,6 @@ def get_info_from_query(id_jwt: int = 0, get_all_messages=False, queue="service"
         return None
 
 
-
 def entity(action: str, entity_type: str, record: dict = None):
     """
     Работа с сущностями в СС.
@@ -350,6 +354,10 @@ def entity(action: str, entity_type: str, record: dict = None):
                     "data": None,
                 }
             data = decode_base64_dict_to_utf8(info)
+            if not data:
+                raise ValueError(
+                    'Результаты обработки отсутствуют для данного id_jwt!'
+                )
             if data["header"].get("payloadType") == "success":
                 return {
                     "status": "success",
@@ -386,6 +394,10 @@ def entity(action: str, entity_type: str, record: dict = None):
                     "data": None,
                 }
             data = decode_base64_dict_to_utf8(info)
+            if not data:
+                raise ValueError(
+                    'Результаты обработки отсутствуют для данного id_jwt!'
+                )
             if data["header"].get("payloadType") == "success":
                 return {
                     "status": "success",
@@ -431,6 +443,10 @@ def entity(action: str, entity_type: str, record: dict = None):
                     "data": None,
                 }
             data = decode_base64_dict_to_utf8(info)
+            if not data:
+                raise ValueError(
+                    'Результаты обработки отсутствуют для данного id_jwt!'
+                )
             if data["header"].get("payloadType") == "success":
                 return {
                     "status": "success",
@@ -467,6 +483,10 @@ def entity(action: str, entity_type: str, record: dict = None):
                     "data": None,
                 }
             data = decode_base64_dict_to_utf8(info)
+            if not data:
+                raise ValueError(
+                    'Результаты обработки отсутствуют для данного id_jwt!'
+                )
             if data["header"].get("payloadType") == "success":
                 return {
                     "status": "success",
@@ -528,7 +548,7 @@ def confirm_all(queue="service"):
 
     if id_jwt_list:
         for id_jwt in id_jwt_list:
-            query_data = get_info_from_query(id_jwt=id_jwt,  queue=queue)
+            query_data = get_info_from_query(id_jwt=id_jwt, queue=queue)
             confirm_data = confirm_of_getting_data(id_jwt=id_jwt)
             s = f"{id_jwt} -- {decode_base64_dict_to_utf8(query_data)} -- {confirm_data}"
             logger.info(s)
@@ -538,7 +558,9 @@ def confirm_all(queue="service"):
         return False
 
 
-def get_data_from_db(entity_type: str, skip: int = 0, limit: int = 20000, stage: int = None) -> list:
+def get_data_from_db(
+    entity_type: str, skip: int = 0, limit: int = 20000, stage: int = None
+) -> list:
     if entity_type not in (
         "subdivisionOrg",
         "educationProgram",
@@ -577,7 +599,7 @@ def get_data_from_db(entity_type: str, skip: int = 0, limit: int = 20000, stage:
     if entity_type == "entranceTest":
         resp = r.get(
             f"{API_BASE_URL}{translator[entity_type]}",
-            params={'skip': skip, 'limit': limit, 'stage': stage},
+            params={"skip": skip, "limit": limit, "stage": stage},
             headers={"Content-Type": "application/json"},
         )
         try:
@@ -588,7 +610,7 @@ def get_data_from_db(entity_type: str, skip: int = 0, limit: int = 20000, stage:
 
     resp = r.get(
         f"{API_BASE_URL}{translator[entity_type]}",
-        params={'skip': skip, 'limit': limit},
+        params={"skip": skip, "limit": limit},
         headers={"Content-Type": "application/json"},
     )
     try:
@@ -598,12 +620,101 @@ def get_data_from_db(entity_type: str, skip: int = 0, limit: int = 20000, stage:
         return None
 
 
+def getter():
+    """
+    Job-а для получение idJwts из очереди ЕПГУ
+    """
+    queue = get_info_from_query(get_all_messages=True, queue="service")
+    number_of_messages = queue.get("messages")
+    print(number_of_messages)
+    if number_of_messages is not None:
+        if int(number_of_messages) > 0:
+            id_jwt_list = queue.get("idJwts")
+            for el in id_jwt_list:
+                session.add(Jwt(id_jwt=el))
+                session.add(JwtJob(name="getter", status=1, query_dump=str(queue)))
+                session.commit()
+        else:
+            session.add(JwtJob(name="getter", status=0, query_dump=str(queue)))
+            session.commit()
+    else:
+        raise ValueError(
+            "Проблема с получением данных из очереди! Возможно она недоступна."
+        )
+
+
+def viewer():
+    """
+    Job-а для получения данных по idJwts, полученные getter()
+    """
+    jwt_list = session.query(Jwt).filter(Jwt.is_view == 0).all()
+    if jwt_list:
+        for jwt in jwt_list:
+            data = get_info_from_query(
+                get_all_messages=False, queue="service", id_jwt=jwt.id_jwt
+            )
+            data_decode = decode_base64_dict_to_utf8(data)
+            if not data_decode:
+                # TODO: подумать
+                session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.is_view: 1})
+                session.add(
+                    JwtJob(name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data))
+                )
+                session.commit()
+                raise ValueError("Полученно некорректное сообщение из очереди ЕГПУ!")
+            datatypes = session.query(Datatype).all()
+            datatypes_dict = dict(
+                zip(
+                    [datatype.name.lower() for datatype in datatypes],
+                    [datatype.id for datatype in datatypes],
+                )
+            )
+            # ! убрать фиктивную запись
+            datatypes_dict["termsadmission"] = 6
+            entity_type = data_decode["header"].get("entityType")
+            if entity_type:
+                if entity_type.lower() in datatypes_dict.keys():
+                    print('Opa')
+                    print(datatypes_dict[entity_type.lower()])
+                    print(data_decode.get("payload"))
+                    session.query(Jwt).filter(Jwt.id == jwt.id).update(
+                        {
+                            Jwt.id_datatype: datatypes_dict[entity_type.lower()],
+                            Jwt.data: data_decode.get("payload"),
+                            Jwt.is_view: 1
+                        }
+                    )
+                    session.add(
+                        JwtJob(
+                            name="viewer", id_jwt=jwt.id, status=1, query_dump=str(data)
+                        )
+                    )
+                    session.commit()
+                else:
+                    session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.is_view: 1})
+                    session.add(
+                        JwtJob(
+                            name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data)
+                        )
+                    )
+                    session.commit()
+                    raise ValueError("entity_type отсутствует в header сообщения")
+            else:
+                session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.is_view: 1})
+                session.add(
+                    JwtJob(name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data))
+                )
+                session.commit()
+                raise ValueError("entity_type отсутствует в header сообщения!")
+    else:
+        raise ValueError("Все доступные данные уже обработаны")
+
+
 if __name__ == "__main__":
     # ? получить справочник по его имени
     # data = get_sprav_by_name(name='TermsAdmissionKinds')
     # data_decode = decode_str_to_utf8(data)
     # print(data_decode)
-
 
     # ? получить экземпляр сущности
     # print(
@@ -615,16 +726,22 @@ if __name__ == "__main__":
     # )
 
     # ? получение данных из очереди СС
-    print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1113725)))
+    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1113725)))
 
     # ? получение данных из очереди ЕПГУ
-    # print(get_info_from_query(get_all_messages=True, queue='epgu'))
+    # print(get_info_from_query(get_all_messages=True, queue='service'))
 
     # ? выгрузка данных из БД в СС
-    d = get_data_from_db(entity_type='termsAdmission')
-    for el in d:
-        print(el)
-        print(entity(action="edit", entity_type="termsAdmission", record=el))
+    # d = get_data_from_db(entity_type='entranceTest', stage=3)
+    # for el in d:
+    #     print(el)
+    #     print(entity(action="add", entity_type="entranceTest", record=el))
 
     # ? подтвердить получение из очереди всех данных
     # confirm_all()
+
+    # ? job-а для получения очереди ЕГПУ
+    # getter()
+
+    # ? job-а для получения данных по id из очереди ЕГПУ
+    viewer()
