@@ -3,7 +3,7 @@
         <UIDCampaign>{{uidcampaign}}</UIDCampaign>
         <UID>{{uid}}</UID>
         <Name>{{name}}</Name>
-        <StartEvent>{{startevent}}</StartEvent>
+        <IDTermsLfs>{{idtermslfs}}</IDTermsLfs>
         <EndEvent>{{endevent}}</EndEvent>
     </TermsAdmission>
 </PackageData>

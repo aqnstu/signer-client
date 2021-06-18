@@ -408,8 +408,8 @@ def entity(action: str, entity_type: str, record: dict = None):
         with open(os.path.join("schemas", "payload", entity_type, "template.xml")) as f:
             file = f.read()
         temp = jinja2.Template(file)
-        payload_raw = temp.render(**record_lower)
-        payload = re.sub(r"\s+", "", payload_raw)
+        payload = temp.render(**record_lower)
+        # payload = re.sub(r"\s+", "", payload_raw)
         if action == "add":
             id_jwt = modify_data(
                 action=action, entity_type=entity_type, payload=payload
@@ -585,7 +585,7 @@ def get_data_from_db(entity_type: str, skip: int = 0, limit: int = 20000, stage:
         except:
             logger.error(resp.text)
             return None
-    
+
     resp = r.get(
         f"{API_BASE_URL}{translator[entity_type]}",
         params={'skip': skip, 'limit': limit},
@@ -599,22 +599,32 @@ def get_data_from_db(entity_type: str, skip: int = 0, limit: int = 20000, stage:
 
 
 if __name__ == "__main__":
-    print(
-        entity(
-            action="get",
-            entity_type="termsAdmission",
-            record={"UID": 2609534405},
-        )
-    )
-    # confirm_all()
-    # print(get_info_from_query(get_all_messages=False, queue='epgu'))
-    # print(get_data('subdivisionOrg', '2157296801'))
-    # print(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1068437))
-    # d = get_data_from_db(entity_type='campaign')
-    # for el in d:
-    #     print(el)
-    #     print(entity(action="get", entity_type="campaign", record=el))
-    # confirm_all()
+    # ? получить справочник по его имени
+    # data = get_sprav_by_name(name='TermsAdmissionKinds')
+    # data_decode = decode_str_to_utf8(data)
+    # print(data_decode)
 
-    print(decode_str_to_utf8(get_sprav_by_name(name='TermsAdmissionMatches')))
 
+    # ? получить экземпляр сущности
+    # print(
+    #     entity(
+    #         action="get",
+    #         entity_type="termsAdmission",
+    #         record={"UID": 2609534405},
+    #     )
+    # )
+
+    # ? получение данных из очереди СС
+    print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1113725)))
+
+    # ? получение данных из очереди ЕПГУ
+    # print(get_info_from_query(get_all_messages=True, queue='epgu'))
+
+    # ? выгрузка данных из БД в СС
+    d = get_data_from_db(entity_type='termsAdmission')
+    for el in d:
+        print(el)
+        print(entity(action="edit", entity_type="termsAdmission", record=el))
+
+    # ? подтвердить получение из очереди всех данных
+    # confirm_all()
