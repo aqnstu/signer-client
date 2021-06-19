@@ -12,7 +12,7 @@ import yaml
 from config import API_BASE_URL, TEST
 from db import session
 from log import logger
-from models import Datatype, Jwt, JwtJob
+from models import Datatype, Jwt, JwtJob, JwtJson, JwtJson
 from signer import create_jwt_via_api
 
 
@@ -82,12 +82,12 @@ def decode_base64_dict_to_utf8(d: dict) -> dict:
     Декодирование словаря c JWT строками в UTF-8
     """
     if d.get('error'):
+        print(f"decode_base64_dict_to_utf8: {d}")
         return None
     d_values = list(d.values())
     if not d_values:
         raise ValueError("Неверный словарь на входе!")
     s_split = safe_split(d_values[0], sep=".")[:-1]
-    print(s_split)
     return {
         "header": yaml.safe_load(base64.b64decode(s_split[0]).decode("utf-8")),
         "payload": base64.b64decode(s_split[1]).decode("utf-8"),
@@ -620,26 +620,119 @@ def get_data_from_db(
         return None
 
 
+def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
+    """
+    Получить доумент из заявления ЕПГУ
+    """
+    header = {
+        "action": "get",
+        "entityType": "document",
+        "ogrn": TEST["OGRN"],
+        "kpp": TEST["KPP"],
+    }
+    payload = f"""
+    <PackageData>
+    <Document>
+        <IDEntrantChoice>
+        <GUID>{user_guid}</GUID>
+        </IDEntrantChoice>
+        <IDDocChoice>
+        <UIDEpgu>{doc_uid_upgu}</UIDEpgu>
+        </IDDocChoice>
+    </Document>
+    </PackageData>
+    """
+    jwt = create_jwt_via_api(header=header, payload=payload)
+    resp = r.post(
+        f"{TEST['BASE_URL']}/api/token/new",
+        json={
+            "token": jwt,
+        },
+        headers={"Content-Type": "application/json"},
+    )
+    time.sleep(0.2)
+    try:
+        data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
+        return {
+            'header': data['header'],
+            'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
+        }
+    except:
+        logger.error(resp.text)
+        return None
+
+
+def edit_application_status_list(application_uid_upgu: int, id_status: int):
+    """
+    Изменить статус завяления ЕПГУ
+    """
+    header = {
+        "action": "add",
+        "entityType": "editApplicationStatusList",
+        "ogrn": TEST["OGRN"],
+        "kpp": TEST["KPP"],
+    }
+    payload = f"""
+    <PackageData>
+        <ApplicationStatus>
+        <IDDocChoice>
+        <UIDEpgu>{application_uid_upgu}</UIDEpgu>
+        </IDDocChoice>
+        <IDStatus>{id_status}</IDStatus>
+        </ApplicationStatus>
+    </PackageData>
+    """
+    jwt = create_jwt_via_api(header=header, payload=payload)
+    resp = r.post(
+        f"{TEST['BASE_URL']}/api/token/new",
+        json={
+            "token": jwt,
+        },
+        headers={"Content-Type": "application/json"},
+    )
+    time.sleep(0.2)
+    try:
+        data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
+        return {
+            'header': data['header'],
+            'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
+        }
+    except:
+        logger.error(resp.text)
+        return None
+
+
 def getter():
     """
     Job-а для получение idJwts из очереди ЕПГУ
     """
-    queue = get_info_from_query(get_all_messages=True, queue="service")
+    queue = get_info_from_query(get_all_messages=True, queue="epgu")
     number_of_messages = queue.get("messages")
     print(number_of_messages)
     if number_of_messages is not None:
         if int(number_of_messages) > 0:
             id_jwt_list = queue.get("idJwts")
+            flag = False
             for el in id_jwt_list:
-                session.add(Jwt(id_jwt=el))
-                session.add(JwtJob(name="getter", status=1, query_dump=str(queue)))
-                session.commit()
+                j = session.query(Jwt).filter(Jwt.id_jwt_epgu == el).first()
+                if not j:
+                    session.add(Jwt(id_jwt_epgu=el))
+                    flag = True
+            if flag:
+                session.add(
+                    JwtJob(name="getter", status=1, query_dump=str(queue))
+                )
+            else:
+                session.add(
+                    JwtJob(name="getter", status=0, query_dump=str(queue))
+                )
+            session.commit()
         else:
             session.add(JwtJob(name="getter", status=0, query_dump=str(queue)))
             session.commit()
     else:
         raise ValueError(
-            "Проблема с получением данных из очереди! Возможно она недоступна."
+            "Проблема с получением данных из очереди ЕПГУ! Возможно она недоступна."
         )
 
 
@@ -647,16 +740,15 @@ def viewer():
     """
     Job-а для получения данных по idJwts, полученные getter()
     """
-    jwt_list = session.query(Jwt).filter(Jwt.is_view == 0).all()
+    jwt_list = session.query(Jwt).filter(Jwt.was_viewed == 0).all()
     if jwt_list:
         for jwt in jwt_list:
             data = get_info_from_query(
-                get_all_messages=False, queue="service", id_jwt=jwt.id_jwt
+                get_all_messages=False, queue="epgu", id_jwt=jwt.id_jwt_epgu
             )
             data_decode = decode_base64_dict_to_utf8(data)
             if not data_decode:
-                # TODO: подумать
-                session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.is_view: 1})
+                session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_viewed: 1})
                 session.add(
                     JwtJob(name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data))
                 )
@@ -669,8 +761,6 @@ def viewer():
                     [datatype.id for datatype in datatypes],
                 )
             )
-            # ! убрать фиктивную запись
-            datatypes_dict["termsadmission"] = 6
             entity_type = data_decode["header"].get("entityType")
             if entity_type:
                 if entity_type.lower() in datatypes_dict.keys():
@@ -681,7 +771,7 @@ def viewer():
                         {
                             Jwt.id_datatype: datatypes_dict[entity_type.lower()],
                             Jwt.data: data_decode.get("payload"),
-                            Jwt.is_view: 1
+                            Jwt.was_viewed: 1
                         }
                     )
                     session.add(
@@ -691,7 +781,7 @@ def viewer():
                     )
                     session.commit()
                 else:
-                    session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.is_view: 1})
+                    session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_viewed: 1})
                     session.add(
                         JwtJob(
                             name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data)
@@ -700,19 +790,60 @@ def viewer():
                     session.commit()
                     raise ValueError("entity_type отсутствует в header сообщения")
             else:
-                session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.is_view: 1})
+                session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_viewed: 1})
                 session.add(
                     JwtJob(name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data))
                 )
                 session.commit()
                 raise ValueError("entity_type отсутствует в header сообщения!")
     else:
-        raise ValueError("Все доступные данные уже обработаны")
+        session.add(
+            JwtJob(name="viewer", status=0)
+        )
+        session.commit()
+
+
+def jsonifier():
+    """
+    Job-а для конвретирования XML в JSON
+    """
+    jwt_list = session.query(Jwt).filter(Jwt.was_jsonify == 0, Jwt.id_datatype != None).all()
+    if jwt_list:
+        for jwt in jwt_list:
+            try:
+                data_json = ordereddict_to_dict(xmltodict.parse(jwt.data))["PackageData"]
+                session.add(
+                    JwtJson(id_jwt=jwt.id, status=1, json=str(data_json))
+                )
+                session.add(
+                    JwtJob(name="jsonifier", id_jwt=jwt.id, status=1, query_dump=str(data_json))
+                )
+            except:
+                session.add(
+                    JwtJson(id_jwt=jwt.id, status=0)
+                )
+                session.add(
+                    JwtJob(name="jsonifier", id_jwt=jwt.id, status=0, query_dump=str(jwt.data))
+                )
+            session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_jsonify: 1})
+            session.commit()
+    else:
+        session.add(
+            JwtJob(name="jsonifier", status=0)
+        )
+        session.commit()
+
+
+def document_getter():
+    '''
+    Job-а для получения документов из заявлений абитуриентов
+    '''
+    ...
 
 
 if __name__ == "__main__":
     # ? получить справочник по его имени
-    # data = get_sprav_by_name(name='TermsAdmissionKinds')
+    # data = get_sprav_by_name(name='applicationStatuses')
     # data_decode = decode_str_to_utf8(data)
     # print(data_decode)
 
@@ -726,10 +857,11 @@ if __name__ == "__main__":
     # )
 
     # ? получение данных из очереди СС
-    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1113725)))
+    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1137106)))
 
     # ? получение данных из очереди ЕПГУ
-    # print(get_info_from_query(get_all_messages=True, queue='service'))
+    # print(get_info_from_query(get_all_messages=False, queue='epgu', id_jwt=1125906))
+    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='epgu', id_jwt=1125906)))
 
     # ? выгрузка данных из БД в СС
     # d = get_data_from_db(entity_type='entranceTest', stage=3)
@@ -740,8 +872,18 @@ if __name__ == "__main__":
     # ? подтвердить получение из очереди всех данных
     # confirm_all()
 
+    # ? получить документ из ЕПГУ
+    # print(get_document_from_epgu(user_guid='7a7bf3b5-f6ae-4a20-bfe7-94728c3d7778', doc_uid_upgu=54160))
+
+    # ? Изменить статус заялвения на ЕПГУ
+    print(edit_application_status_list(application_uid_upgu=1255604171, id_status=2))
+    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1137416)))
+
     # ? job-а для получения очереди ЕГПУ
     # getter()
 
     # ? job-а для получения данных по id из очереди ЕГПУ
-    viewer()
+    # viewer()
+
+    # ? job-а для конвертирования полученных данных из XML в JSON
+    # jsonifier()
