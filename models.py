@@ -25,6 +25,29 @@ t_sqlite_sequence = Table(
 )
 
 
+t_vw_jwt_doc_to_nstu = Table(
+    'vw_jwt_doc_to_nstu', metadata,
+    Column('id', Integer),
+    Column('id_jwt', Integer),
+    Column('id_documenttype', Integer),
+    Column('user_guid', Text),
+    Column('data_json', Text),
+    Column('was_uploaded', Integer),
+    Column('uploaded', TIMESTAMP)
+)
+
+
+t_vw_jwt_to_nstu = Table(
+    'vw_jwt_to_nstu', metadata,
+    Column('id', Integer),
+    Column('id_datatype', Integer),
+    Column('user_guid', Text),
+    Column('json', Text),
+    Column('was_uploaded', Integer),
+    Column('uploaded', TIMESTAMP)
+)
+
+
 class Jwt(Base):
     __tablename__ = 'jwt'
 
@@ -42,6 +65,11 @@ class Jwt(Base):
     was_identify = Column(Integer, server_default=text("0"))
     identified = Column(TIMESTAMP)
     user_guid = Column(Text)
+    epgu_status = Column(Integer, server_default=text("1"))
+    current_status = Column(Integer, server_default=text("1"))
+    was_uploaded = Column(Integer, server_default=text("0"))
+    uploaded = Column(TIMESTAMP)
+    status_changed = Column(TIMESTAMP)
 
     datatype = relationship('Datatype')
 
@@ -54,6 +82,8 @@ class JwtDoc(Base):
     id_documenttype = Column(Integer)
     data_json = Column(Text)
     added = Column(TIMESTAMP, server_default=text("current_timestamp"))
+    was_uploaded = Column(Integer, server_default=text("0"))
+    uploaded = Column(TIMESTAMP)
 
     jwt = relationship('Jwt')
 
@@ -67,6 +97,7 @@ class JwtJob(Base):
     status = Column(Integer)
     query_dump = Column(Text)
     added = Column(TIMESTAMP, nullable=False, server_default=text("current_timestamp"))
+    comment = Column(Text)
 
     jwt = relationship('Jwt')
 

@@ -9,10 +9,10 @@ import time
 import xmltodict
 import yaml
 
-from config import API_BASE_URL, TEST
+from config import API_BASE_URL, SS
 from db import session
 from log import logger
-from models import Datatype, Jwt, JwtJob, JwtJson, JwtDoc
+from models import Datatype, Jwt, JwtJob, JwtJson, JwtDoc, t_vw_jwt_to_nstu, t_vw_jwt_doc_to_nstu
 from signer import create_jwt_via_api
 
 
@@ -100,11 +100,11 @@ def get_sprav_by_name(name: str) -> str:
 
     """
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/cls/request",
+        f"{SS['BASE_URL']}/api/cls/request",
         json={
             "cls": name,
-            "ogrn": TEST["OGRN"],
-            "kpp": TEST["KPP"],
+            "ogrn": SS["OGRN"],
+            "kpp": SS["KPP"],
         },
         headers={"Content-Type": "application/json"},
     )
@@ -116,10 +116,10 @@ def check_binding_cert_to_org() -> str:
     Проверка привязки сертификата к организации,
     а также корректной подписи данных.
     """
-    header = {"ogrn": TEST["OGRN"], "kpp": TEST["KPP"]}
+    header = {"ogrn": SS["OGRN"], "kpp": SS["KPP"]}
     jwt = create_jwt_via_api(header=header)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/certificate/check",
+        f"{SS['BASE_URL']}/api/certificate/check",
         json={
             "token": jwt,
         },
@@ -135,13 +135,13 @@ def get_data(entity_type: str, uid: str) -> str:
     header = {
         "action": "get",
         "entityType": entity_type,
-        "ogrn": TEST["OGRN"],
-        "kpp": TEST["KPP"],
+        "ogrn": SS["OGRN"],
+        "kpp": SS["KPP"],
     }
     payload = f"<PackageData><{entity_type[0].upper() + entity_type[1:]}><UID>{uid}</UID></{entity_type[0].upper() + entity_type[1:]}></PackageData>"
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/token/new",
+        f"{SS['BASE_URL']}/api/token/new",
         json={
             "token": jwt,
         },
@@ -161,13 +161,13 @@ def remove_data(entity_type: str, uid: str) -> str:
     header = {
         "action": "remove",
         "entityType": entity_type,
-        "ogrn": TEST["OGRN"],
-        "kpp": TEST["KPP"],
+        "ogrn": SS["OGRN"],
+        "kpp": SS["KPP"],
     }
     payload = f"<PackageData><{entity_type[0].upper() + entity_type[1:]}><UID>{uid}</UID></{entity_type[0].upper() + entity_type[1:]}></PackageData>"
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/token/new",
+        f"{SS['BASE_URL']}/api/token/new",
         json={
             "token": jwt,
         },
@@ -207,12 +207,12 @@ def modify_data(action: str, entity_type: str, payload: str) -> str:
     header = {
         "action": action,
         "entityType": entity_type,
-        "ogrn": TEST["OGRN"],
-        "kpp": TEST["KPP"],
+        "ogrn": SS["OGRN"],
+        "kpp": SS["KPP"],
     }
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/token/new",
+        f"{SS['BASE_URL']}/api/token/new",
         json={
             "token": jwt,
         },
@@ -246,12 +246,12 @@ def get_info_from_query(id_jwt: int = 0, get_all_messages=False, queue="service"
     if not get_all_messages:
         header = {
             "action": "getMessage",
-            "ogrn": TEST["OGRN"],
-            "kpp": TEST["KPP"],
+            "ogrn": SS["OGRN"],
+            "kpp": SS["KPP"],
             "idJwt": id_jwt,
         }
         resp = r.post(
-            f"{TEST['BASE_URL']}/api/token/{queue}/info",
+            f"{SS['BASE_URL']}/api/token/{queue}/info",
             json={
                 "token": create_jwt_via_api(header=header),
             },
@@ -259,10 +259,10 @@ def get_info_from_query(id_jwt: int = 0, get_all_messages=False, queue="service"
         )
     else:
         resp = r.post(
-            f"{TEST['BASE_URL']}/api/token/{queue}/info",
+            f"{SS['BASE_URL']}/api/token/{queue}/info",
             json={
-                "ogrn": TEST["OGRN"],
-                "kpp": TEST["KPP"],
+                "ogrn": SS["OGRN"],
+                "kpp": SS["KPP"],
             },
             headers={"Content-Type": "application/json"},
         )
@@ -517,13 +517,13 @@ def confirm_of_getting_data(id_jwt: int):
     """
     header = {
         "action": "messageConfirm",
-        "ogrn": TEST["OGRN"],
-        "kpp": TEST["KPP"],
+        "ogrn": SS["OGRN"],
+        "kpp": SS["KPP"],
         "idJwt": id_jwt,
     }
     jwt = create_jwt_via_api(header=header)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/token/confirm",
+        f"{SS['BASE_URL']}/api/token/confirm",
         json={
             "token": jwt,
         },
@@ -627,8 +627,8 @@ def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
     header = {
         "action": "get",
         "entityType": "document",
-        "ogrn": TEST["OGRN"],
-        "kpp": TEST["KPP"],
+        "ogrn": SS["OGRN"],
+        "kpp": SS["KPP"],
     }
     payload = f"""
     <PackageData>
@@ -644,7 +644,7 @@ def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
     """
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/token/new",
+        f"{SS['BASE_URL']}/api/token/new",
         json={
             "token": jwt,
         },
@@ -669,8 +669,8 @@ def get_identification_from_epgu(user_guid: str, identification_uid_upgu: int) -
     header = {
         "action": "get",
         "entityType": "identification",
-        "ogrn": TEST["OGRN"],
-        "kpp": TEST["KPP"],
+        "ogrn": SS["OGRN"],
+        "kpp": SS["KPP"],
     }
     payload = f"""
     <PackageData>
@@ -686,7 +686,7 @@ def get_identification_from_epgu(user_guid: str, identification_uid_upgu: int) -
     """
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/token/new",
+        f"{SS['BASE_URL']}/api/token/new",
         json={
             "token": jwt,
         },
@@ -711,8 +711,8 @@ def edit_application_status_list(application_uid_upgu: int, id_status: int):
     header = {
         "action": "add",
         "entityType": "editApplicationStatusList",
-        "ogrn": TEST["OGRN"],
-        "kpp": TEST["KPP"],
+        "ogrn": SS["OGRN"],
+        "kpp": SS["KPP"],
     }
     payload = f"""
     <PackageData>
@@ -726,7 +726,7 @@ def edit_application_status_list(application_uid_upgu: int, id_status: int):
     """
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
-        f"{TEST['BASE_URL']}/api/token/new",
+        f"{SS['BASE_URL']}/api/token/new",
         json={
             "token": jwt,
         },
@@ -1059,6 +1059,179 @@ def identifier():
         session.commit()
 
 
+def uploader():
+    """
+    Job-а для выгрузки данных в БД ЦИУ (очередь ЕПГУ и связанные документы)
+    """
+    jwt_to_nstu_list = session.query(t_vw_jwt_to_nstu).filter(t_vw_jwt_to_nstu.c.was_uploaded == 0).all()
+    if jwt_to_nstu_list:
+        for jwt_to_nstu in jwt_to_nstu_list:
+            resp = r.post(
+                f"{API_BASE_URL}/api/db/insert-into-epgu-application",
+                json={
+                    "user_guid": jwt_to_nstu._asdict()['user_guid'],
+                    "json_data": jwt_to_nstu._asdict()['json'],
+                    "id_datatype": jwt_to_nstu._asdict()['id_datatype']
+                },
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code == 200:
+                session.query(Jwt).filter(Jwt.id == jwt_to_nstu._asdict()['id']).update({Jwt.was_uploaded: 1})
+                session.add(
+                    JwtJob(
+                        name="uploader",
+                        id_jwt=jwt_to_nstu._asdict()['id'],
+                        status=1,
+                        query_dump=json.dumps(jwt_to_nstu._asdict(), ensure_ascii=False, sort_keys=False)
+                    )
+                )
+            else:
+                session.add(
+                    JwtJob(name="uploader", status=0, comment='jwt (проблема с вставкой)')
+                )
+            session.commit()
+    else:
+        session.add(
+            JwtJob(name="uploader", status=0, comment='jwt')
+        )
+        session.commit()
+
+    jwt_doc_to_nstu_list = session.query(
+        t_vw_jwt_doc_to_nstu
+    ).filter(
+        t_vw_jwt_doc_to_nstu.c.was_uploaded == 0
+    ).all()
+    if jwt_doc_to_nstu_list:
+        for jwt_doc_to_nstu in jwt_doc_to_nstu_list:
+            resp = r.post(
+                f"{API_BASE_URL}/api/db/insert-into-epgu-document",
+                json={
+                    "user_guid": jwt_doc_to_nstu._asdict()['user_guid'],
+                    "json_data": jwt_doc_to_nstu._asdict()['data_json'],
+                    "id_documenttype": jwt_doc_to_nstu._asdict()['id_documenttype']
+                },
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code == 200:
+                session.query(JwtDoc).filter(JwtDoc.id == jwt_doc_to_nstu._asdict()['id']).update({JwtDoc.was_uploaded: 1})
+                session.add(
+                    JwtJob(
+                        name="uploader",
+                        id_jwt=jwt_doc_to_nstu._asdict()['id'],
+                        status=1,
+                        query_dump=json.dumps(jwt_doc_to_nstu._asdict(), ensure_ascii=False, sort_keys=False)
+                    )
+                )
+            else:
+                session.add(
+                    JwtJob(name="uploader", status=0, comment='docs (проблема с вставкой)')
+                )
+            session.commit()
+    else:
+        session.add(
+            JwtJob(name="uploader", status=0, comment='docs')
+        )
+        session.commit()
+
+
+def status_syncer():
+    """
+    Job-а для синхронизации статусов ЕПГУ
+    """
+    resp_ciu = r.get(
+        f"{API_BASE_URL}/api/db/get-statuses-to",
+        params={"skip": 0, "limit": 5000},
+        headers={"Content-Type": "application/json"},
+    )
+    resp_json = resp_ciu.json()
+    print(resp_json)
+    if resp_json:
+        for status in resp_json:
+            jwt = session.query(
+                t_vw_jwt_to_nstu
+            ).filter(
+                t_vw_jwt_to_nstu.c.user_guid == status['epgu_id'],
+                t_vw_jwt_to_nstu.c.id_datatype == 1
+            ).first()
+            print(jwt._asdict())
+            application_uid_upgu = nested_lookup(
+                key='AppNumber',
+                document=json.loads(jwt._asdict()['json']),
+                with_keys=False,
+                wild=False
+            )[0]
+            resp_status = edit_application_status_list(
+                application_uid_upgu=int(application_uid_upgu),
+                id_status=status['id_ss_applicationstatuses']
+            )
+            if resp_status:
+                if resp_status["header"].get("payloadType") == "success":
+                    print('opa')
+                    session.query(
+                        Jwt
+                    ).filter(
+                        Jwt.user_guid == status['epgu_id']
+                    ).update(
+                        {
+                            Jwt.current_status: status['id_ss_applicationstatuses'],
+                        }
+                    )
+                    session.add(
+                        JwtJob(
+                            name="status_syncer",
+                            id_jwt=jwt._asdict()['id'],
+                            status=1,
+                            query_dump=json.dumps(resp_json, ensure_ascii=False, sort_keys=False)
+                        )
+                    )
+                    resp = r.post(
+                        f"{API_BASE_URL}/api/db/update-statuses-to",
+                        json={
+                            "pk": status['pk'],
+                            "is_processed": 1,
+                            "err_msg": '-'
+                        },
+                        headers={"Content-Type": "application/json"},
+                    )
+                else:
+                    session.add(
+                        JwtJob(
+                            name="status_syncer",
+                            id_jwt=jwt._asdict()['id'],
+                            status=0,
+                            query_dump=json.dumps(resp_status, ensure_ascii=False, sort_keys=False)
+                        )
+                    )
+                    resp = r.post(
+                        f"{API_BASE_URL}/api/db/update-statuses-to",
+                        json={
+                            "pk": status['pk'],
+                            "is_processed": 1,
+                            "err_msg": json.dumps(resp_status, ensure_ascii=False, sort_keys=False)
+                        },
+                        headers={"Content-Type": "application/json"},
+                    )
+            else:
+                session.add(
+                    JwtJob(name="status_syncer", status=0, comment='(очередь недоступна)')
+                )
+                resp = r.post(
+                    f"{API_BASE_URL}/api/db/update-statuses-to",
+                    json={
+                        "pk": status['pk'],
+                        "is_processed": 1,
+                        "err_msg": '(очередь недоступна)'
+                    },
+                    headers={"Content-Type": "application/json"},
+                )
+        session.commit()
+    else:
+        session.add(
+            JwtJob(name="status_syncer", status=0)
+        )
+        session.commit()
+
+
 if __name__ == "__main__":
     # ? получить справочник по его имени
     # data = get_sprav_by_name(name='ApplicationStatuses')
@@ -1106,7 +1279,7 @@ if __name__ == "__main__":
     # )
 
     # ? Изменить статус заялвения на ЕПГУ
-    # print(edit_application_status_list(application_uid_upgu=1255605891, id_status=2))
+    # print(edit_application_status_list(application_uid_upgu=12556058911, id_status=2))
 
     # ? job-а для получения очереди ЕГПУ
     # getter()
@@ -1115,10 +1288,16 @@ if __name__ == "__main__":
     # viewer()
 
     # ? job-а для конвертирования полученных данных из XML в JSON
-    jsonifier()
+    # jsonifier()
 
     # ? job-а для полученния документов из заявления
     # docifier()
 
     # ? job-а для получения документа, удостоверяющего личность, из заявления
     # identifier()
+
+    # ?  job-а для получения документа, удостоверяющего личность, из заявления
+    # uploader()
+    
+    # job-а для синхронизации статусов ЕПГУ с БД ЦИУ
+    status_syncer()
