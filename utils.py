@@ -845,7 +845,9 @@ def jsonifier():
     """
     Job-а для конвретирования XML в JSON
     """
-    jwt_list = session.query(Jwt).filter(Jwt.was_jsonify == 0, Jwt.id_datatype != None).all()
+    jwt_list = session.query(
+        Jwt
+    ).filter(Jwt.was_viewed == 1, Jwt.was_jsonify == 0, Jwt.id_datatype != None).all()
     if jwt_list:
         for jwt in jwt_list:
             try:
