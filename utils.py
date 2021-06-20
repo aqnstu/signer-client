@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -
 import base64
+import json
 import jinja2
+from nested_lookup import nested_lookup
 import os
-
-# import re
 import requests as r
 import time
 import xmltodict
@@ -12,7 +12,7 @@ import yaml
 from config import API_BASE_URL, TEST
 from db import session
 from log import logger
-from models import Datatype, Jwt, JwtJob, JwtJson, JwtJson
+from models import Datatype, Jwt, JwtJob, JwtJson, JwtDoc
 from signer import create_jwt_via_api
 
 
@@ -362,7 +362,7 @@ def entity(action: str, entity_type: str, record: dict = None):
                 return {
                     "status": "success",
                     "id_jwt": id_jwt,
-                    "entity_type": data["header"].get("subdivisionOrg"),
+                    "entity_type": data["header"].get("entityType"),
                     "data": ordereddict_to_dict(xmltodict.parse(data["payload"]))[
                         "PackageData"
                     ][f"{entity_type[0].upper() + entity_type[1:]}"],
@@ -632,14 +632,14 @@ def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
     }
     payload = f"""
     <PackageData>
-    <Document>
-        <IDEntrantChoice>
-        <GUID>{user_guid}</GUID>
-        </IDEntrantChoice>
-        <IDDocChoice>
-        <UIDEpgu>{doc_uid_upgu}</UIDEpgu>
-        </IDDocChoice>
-    </Document>
+        <Document>
+            <IDEntrantChoice>
+                <GUID>{user_guid}</GUID>
+            </IDEntrantChoice>
+            <IDDocChoice>
+                <UIDEpgu>{doc_uid_upgu}</UIDEpgu>
+            </IDDocChoice>
+        </Document>
     </PackageData>
     """
     jwt = create_jwt_via_api(header=header, payload=payload)
@@ -650,7 +650,49 @@ def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
         },
         headers={"Content-Type": "application/json"},
     )
-    time.sleep(0.2)
+    time.sleep(3)
+    try:
+        data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
+        return {
+            'header': data['header'],
+            'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
+        }
+    except:
+        logger.error(resp.text)
+        return None
+
+
+def get_identification_from_epgu(user_guid: str, identification_uid_upgu: int) -> dict:
+    """
+    Получить доумент из заявления ЕПГУ
+    """
+    header = {
+        "action": "get",
+        "entityType": "identification",
+        "ogrn": TEST["OGRN"],
+        "kpp": TEST["KPP"],
+    }
+    payload = f"""
+    <PackageData>
+        <Identification>
+            <IDEntrantChoice>
+                <GUID>{user_guid}</GUID>
+            </IDEntrantChoice>
+            <IDChoice>
+                <UIDEpgu>{identification_uid_upgu}</UIDEpgu>
+            </IDChoice>
+        </Identification>
+    </PackageData>
+    """
+    jwt = create_jwt_via_api(header=header, payload=payload)
+    resp = r.post(
+        f"{TEST['BASE_URL']}/api/token/new",
+        json={
+            "token": jwt,
+        },
+        headers={"Content-Type": "application/json"},
+    )
+    time.sleep(3)
     try:
         data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
         return {
@@ -690,7 +732,7 @@ def edit_application_status_list(application_uid_upgu: int, id_status: int):
         },
         headers={"Content-Type": "application/json"},
     )
-    time.sleep(0.2)
+    time.sleep(3)
     try:
         data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
         return {
@@ -708,7 +750,6 @@ def getter():
     """
     queue = get_info_from_query(get_all_messages=True, queue="epgu")
     number_of_messages = queue.get("messages")
-    print(number_of_messages)
     if number_of_messages is not None:
         if int(number_of_messages) > 0:
             id_jwt_list = queue.get("idJwts")
@@ -764,9 +805,6 @@ def viewer():
             entity_type = data_decode["header"].get("entityType")
             if entity_type:
                 if entity_type.lower() in datatypes_dict.keys():
-                    print('Opa')
-                    print(datatypes_dict[entity_type.lower()])
-                    print(data_decode.get("payload"))
                     session.query(Jwt).filter(Jwt.id == jwt.id).update(
                         {
                             Jwt.id_datatype: datatypes_dict[entity_type.lower()],
@@ -811,12 +849,34 @@ def jsonifier():
     if jwt_list:
         for jwt in jwt_list:
             try:
-                data_json = ordereddict_to_dict(xmltodict.parse(jwt.data))["PackageData"]
+                data_json = json.loads(
+                    json.dumps(
+                        xmltodict.parse(jwt.data),
+                        ensure_ascii=False,
+                        sort_keys=False
+                    )
+                )["PackageData"]
+                user_guid = nested_lookup(
+                    key='GUID',
+                    document=data_json,
+                    with_keys=False,
+                    wild=False
+                )[0]
+                print(user_guid)
                 session.add(
-                    JwtJson(id_jwt=jwt.id, status=1, json=str(data_json))
+                    JwtJson(
+                        id_jwt=jwt.id,
+                        status=1,
+                        json=json.dumps(data_json, ensure_ascii=False, sort_keys=False)
+                    )
                 )
                 session.add(
-                    JwtJob(name="jsonifier", id_jwt=jwt.id, status=1, query_dump=str(data_json))
+                    JwtJob(
+                        name="jsonifier",
+                        id_jwt=jwt.id,
+                        status=1,
+                        query_dump=json.dumps(data_json, ensure_ascii=False, sort_keys=False)
+                    )
                 )
             except:
                 session.add(
@@ -825,7 +885,7 @@ def jsonifier():
                 session.add(
                     JwtJob(name="jsonifier", id_jwt=jwt.id, status=0, query_dump=str(jwt.data))
                 )
-            session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_jsonify: 1})
+            session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_jsonify: 1, Jwt.user_guid: user_guid})
             session.commit()
     else:
         session.add(
@@ -834,16 +894,172 @@ def jsonifier():
         session.commit()
 
 
-def document_getter():
+def application_docs_finder(d: dict, tag: str) -> dict:
+    """
+    Поиск документов в заявлении ЕПГУ по тэгу
+    """
+    found_docs = nested_lookup(
+        key=tag,
+        document=d,
+        with_keys=True,
+        wild=False,
+    )
+    clean_docs = {}
+    if found_docs:
+        for docs in found_docs[tag]:
+            for key, value in docs.items():
+                for k, v in value.items():
+                    if isinstance(v, list):
+                        lst = []
+                        for el in v:
+                            lst.extend(
+                                nested_lookup(
+                                    key='UIDEpgu',
+                                    document=el,
+                                    with_keys=False,
+                                    wild=False
+                                )
+                            )
+                        clean_docs[k.lower()] = lst
+                    else:
+                        clean_docs[k.lower()] = nested_lookup(
+                            key='UIDEpgu',
+                            document=v,
+                            with_keys=False,
+                            wild=False
+                        )
+    return clean_docs
+
+
+def docifier():
     '''
-    Job-а для получения документов из заявлений абитуриентов
+    Job-а для получения документов из заявлений абитуриентов, в т.ч. паспорта
     '''
-    ...
+    jwt_list = session.query(Jwt).filter(Jwt.id_datatype == 1, Jwt.was_jsonify == 1, Jwt.was_docify == 0).all()
+    jwt_json_list = session.query(
+        JwtJson
+    ).filter(JwtJson.id_jwt.in_([jwt.id for jwt in jwt_list]), JwtJson.json != None).all()
+    if jwt_json_list:
+        for jwt_json in jwt_json_list:
+            flag = False
+            json_data = json.loads(jwt_json.json)
+            docs = application_docs_finder(
+                d=json_data,
+                tag='Documents'
+            )
+            user_guid = nested_lookup(
+                key='GUID',
+                document=json_data,
+                with_keys=False,
+                wild=False
+            )
+            if docs and user_guid:
+                flag = True
+                for k, v in docs.items():
+                    for el in v:
+                        doc = get_document_from_epgu(
+                            user_guid=user_guid[0],
+                            doc_uid_upgu=el
+                        )
+                        # TODO: если payload пустой ???
+                        logger.warning(f"docifier -- document id_jwt -- {doc['header'].get('idJwt')}")
+                        id_doctype = nested_lookup(
+                            key='IDDocumentType',
+                            document=doc['payload'],
+                            with_keys=False,
+                            wild=False
+                        )
+                        session.add(
+                            JwtDoc(
+                                id_jwt=jwt_json.id_jwt,
+                                id_documenttype=int(id_doctype[0]),
+                                data_json=json.dumps(doc['payload'], ensure_ascii=False, sort_keys=False),
+                            )
+                        )
+            if flag:
+                session.add(
+                    JwtJob(name="docifier", id_jwt=jwt_json.id_jwt, status=1, query_dump=str(jwt_json.json))
+                )
+            else:
+                session.add(
+                    JwtJob(name="docifier", id_jwt=jwt_json.id_jwt, status=0, query_dump=str(jwt_json.json))
+                )
+            session.query(Jwt).filter(Jwt.id == jwt_json.id_jwt).update({Jwt.was_docify: 1})
+            session.commit()
+    else:
+        session.add(
+            JwtJob(name="docifier", status=0)
+        )
+        session.commit()
+
+
+def identifier():
+    '''
+    Job-а для получения документов, удостоверяющих личность
+    '''
+    jwt_list = session.query(
+        Jwt
+    ).filter(Jwt.id_datatype == 1, Jwt.was_jsonify == 1, Jwt.was_docify == 1, Jwt.was_identify == 0).all()
+    jwt_json_list = session.query(
+        JwtJson
+    ).filter(JwtJson.id_jwt.in_([jwt.id for jwt in jwt_list]), JwtJson.json != None).all()
+    if jwt_json_list:
+        for jwt_json in jwt_json_list:
+            flag = False
+            json_data = json.loads(jwt_json.json)
+            idents = application_docs_finder(
+                d=json_data,
+                tag='Identifications'
+            )
+            user_guid = nested_lookup(
+                key='GUID',
+                document=json_data,
+                with_keys=False,
+                wild=False
+            )
+            if idents and user_guid:
+                flag = True
+                for k, v in idents.items():
+                    for el in v:
+                        ident_doc = get_identification_from_epgu(
+                            user_guid=user_guid[0],
+                            identification_uid_upgu=el
+                        )
+                        # TODO: если payload пустой ???
+                        logger.warning(f"docifier -- document id_jwt -- {ident_doc['header'].get('idJwt')}")
+                        id_doctype = nested_lookup(
+                            key='IDDocumentType',
+                            document=ident_doc['payload'],
+                            with_keys=False,
+                            wild=False
+                        )
+                        session.add(
+                            JwtDoc(
+                                id_jwt=jwt_json.id_jwt,
+                                id_documenttype=int(id_doctype[0]),
+                                data_json=json.dumps(ident_doc['payload'], ensure_ascii=False, sort_keys=False),
+                            )
+                        )
+            if flag:
+                session.add(
+                    JwtJob(name="identifier", id_jwt=jwt_json.id_jwt, status=1, query_dump=str(jwt_json.json))
+                )
+            else:
+                session.add(
+                    JwtJob(name="identifier", id_jwt=jwt_json.id_jwt, status=0, query_dump=str(jwt_json.json))
+                )
+            session.query(Jwt).filter(Jwt.id == jwt_json.id_jwt).update({Jwt.was_identify: 1})
+            session.commit()
+    else:
+        session.add(
+            JwtJob(name="identifier", status=0)
+        )
+        session.commit()
 
 
 if __name__ == "__main__":
     # ? получить справочник по его имени
-    # data = get_sprav_by_name(name='applicationStatuses')
+    # data = get_sprav_by_name(name='ApplicationStatuses')
     # data_decode = decode_str_to_utf8(data)
     # print(data_decode)
 
@@ -852,7 +1068,7 @@ if __name__ == "__main__":
     #     entity(
     #         action="get",
     #         entity_type="termsAdmission",
-    #         record={"UID": 2609534405},
+    #         record={"UID": 2899244205},
     #     )
     # )
 
@@ -860,8 +1076,7 @@ if __name__ == "__main__":
     # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1137106)))
 
     # ? получение данных из очереди ЕПГУ
-    # print(get_info_from_query(get_all_messages=False, queue='epgu', id_jwt=1125906))
-    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='epgu', id_jwt=1125906)))
+    # print(get_info_from_query(get_all_messages=True, queue='epgu'))
 
     # ? выгрузка данных из БД в СС
     # d = get_data_from_db(entity_type='entranceTest', stage=3)
@@ -873,11 +1088,23 @@ if __name__ == "__main__":
     # confirm_all()
 
     # ? получить документ из ЕПГУ
-    # print(get_document_from_epgu(user_guid='7a7bf3b5-f6ae-4a20-bfe7-94728c3d7778', doc_uid_upgu=54160))
+    # print(
+    #     get_document_from_epgu(
+    #         user_guid='7a7bf3b5-f6ae-4a20-bfe7-94728c3d7778',
+    #         doc_uid_upgu=54160
+    #     )
+    # )
+
+    # ? получить документ, удостоверящий личность из ЕПГУ
+    # print(
+    #     get_identification_from_epgu(
+    #         user_guid='7a7bf3b5-f6ae-4a20-bfe7-94728c3d7778',
+    #         identification_uid_upgu=26505
+    #     )
+    # )
 
     # ? Изменить статус заялвения на ЕПГУ
-    print(edit_application_status_list(application_uid_upgu=1255604171, id_status=2))
-    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1137416)))
+    # print(edit_application_status_list(application_uid_upgu=1255605891, id_status=2))
 
     # ? job-а для получения очереди ЕГПУ
     # getter()
@@ -886,4 +1113,10 @@ if __name__ == "__main__":
     # viewer()
 
     # ? job-а для конвертирования полученных данных из XML в JSON
-    # jsonifier()
+    jsonifier()
+
+    # ? job-а для полученния документов из заявления
+    # docifier()
+
+    # ? job-а для получения документа, удостоверяющего личность, из заявления
+    # identifier()

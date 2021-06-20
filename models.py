@@ -37,8 +37,25 @@ class Jwt(Base):
     viewed = Column(TIMESTAMP)
     was_jsonify = Column(Integer, server_default=text("0"))
     jsonified = Column(TIMESTAMP)
+    was_docify = Column(Integer, server_default=text("0"))
+    docified = Column(TIMESTAMP)
+    was_identify = Column(Integer, server_default=text("0"))
+    identified = Column(TIMESTAMP)
+    user_guid = Column(Text)
 
     datatype = relationship('Datatype')
+
+
+class JwtDoc(Base):
+    __tablename__ = 'jwt_doc'
+
+    id = Column(Integer, primary_key=True)
+    id_jwt = Column(ForeignKey('jwt.id'))
+    id_documenttype = Column(Integer)
+    data_json = Column(Text)
+    added = Column(TIMESTAMP, server_default=text("current_timestamp"))
+
+    jwt = relationship('Jwt')
 
 
 class JwtJob(Base):
