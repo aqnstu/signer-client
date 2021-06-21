@@ -772,9 +772,8 @@ def getter():
             session.add(JwtJob(name="getter", status=0, query_dump=str(queue)))
             session.commit()
     else:
-        raise ValueError(
-            "Проблема с получением данных из очереди ЕПГУ! Возможно она недоступна."
-        )
+        session.add(JwtJob(name="getter", status=0, comment="Проблема с получением данных из очереди ЕПГУ! Возможно она недоступна."))
+        session.commit()
 
 
 def viewer():
@@ -822,21 +821,19 @@ def viewer():
                     session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_viewed: 1})
                     session.add(
                         JwtJob(
-                            name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data)
+                            name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data), comment="entity_type не соответсвтует datatypes"
                         )
                     )
                     session.commit()
-                    raise ValueError("entity_type отсутствует в header сообщения")
             else:
                 session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_viewed: 1})
                 session.add(
-                    JwtJob(name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data))
+                    JwtJob(name="viewer", id_jwt=jwt.id, status=0, query_dump=str(data)), comment="entity_type отсутствует в header сообщения"
                 )
                 session.commit()
-                raise ValueError("entity_type отсутствует в header сообщения!")
     else:
         session.add(
-            JwtJob(name="viewer", status=0)
+            JwtJob(name="viewer", status=0, comment="Нет новых данных для просмотра")
         )
         session.commit()
 
@@ -864,7 +861,12 @@ def jsonifier():
                     with_keys=False,
                     wild=False
                 )[0]
-                print(user_guid)
+                app_number = nested_lookup(
+                    key='AppNumber',
+                    document=data_json,
+                    with_keys=False,
+                    wild=False
+                )[0]
                 session.add(
                     JwtJson(
                         id_jwt=jwt.id,
@@ -887,11 +889,13 @@ def jsonifier():
                 session.add(
                     JwtJob(name="jsonifier", id_jwt=jwt.id, status=0, query_dump=str(jwt.data))
                 )
-            session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_jsonify: 1, Jwt.user_guid: user_guid})
+            session.query(Jwt).filter(Jwt.id == jwt.id).update(
+                {Jwt.was_jsonify: 1, Jwt.user_guid: user_guid, Jwt.appnumber: app_number}
+            )
             session.commit()
     else:
         session.add(
-            JwtJob(name="jsonifier", status=0)
+            JwtJob(name="jsonifier", status=0, comment="Нет новых данных")
         )
         session.commit()
 
@@ -906,6 +910,7 @@ def application_docs_finder(d: dict, tag: str) -> dict:
         with_keys=True,
         wild=False,
     )
+    print(found_docs)
     clean_docs = {}
     if found_docs:
         for docs in found_docs[tag]:
@@ -978,6 +983,7 @@ def docifier():
                                 data_json=json.dumps(doc['payload'], ensure_ascii=False, sort_keys=False),
                             )
                         )
+                        session.commit()
             if flag:
                 session.add(
                     JwtJob(name="docifier", id_jwt=jwt_json.id_jwt, status=1, query_dump=str(jwt_json.json))
@@ -990,7 +996,7 @@ def docifier():
             session.commit()
     else:
         session.add(
-            JwtJob(name="docifier", status=0)
+            JwtJob(name="docifier", status=0, comment="Нет новых данных")
         )
         session.commit()
 
@@ -1009,10 +1015,19 @@ def identifier():
         for jwt_json in jwt_json_list:
             flag = False
             json_data = json.loads(jwt_json.json)
-            idents = application_docs_finder(
-                d=json_data,
-                tag='Identifications'
+            ident_search = nested_lookup(
+                key='Identifications',
+                document=json_data,
+                with_keys=True,
+                wild=False,
             )
+            uid_search = nested_lookup(
+                key='UIDEpgu',
+                document=ident_search,
+                with_keys=False,
+                wild=False,
+            )
+            idents = {'identification': uid_search}
             user_guid = nested_lookup(
                 key='GUID',
                 document=json_data,
@@ -1042,6 +1057,7 @@ def identifier():
                                 data_json=json.dumps(ident_doc['payload'], ensure_ascii=False, sort_keys=False),
                             )
                         )
+                        session.commit()
             if flag:
                 session.add(
                     JwtJob(name="identifier", id_jwt=jwt_json.id_jwt, status=1, query_dump=str(jwt_json.json))
@@ -1054,7 +1070,7 @@ def identifier():
             session.commit()
     else:
         session.add(
-            JwtJob(name="identifier", status=0)
+            JwtJob(name="identifier", status=0, comment="Нет новых данных")
         )
         session.commit()
 
@@ -1070,6 +1086,7 @@ def uploader():
                 f"{API_BASE_URL}/api/db/insert-into-epgu-application",
                 json={
                     "user_guid": jwt_to_nstu._asdict()['user_guid'],
+                    "appnumber": jwt_to_nstu._asdict()['appnumber'],
                     "json_data": jwt_to_nstu._asdict()['json'],
                     "id_datatype": jwt_to_nstu._asdict()['id_datatype']
                 },
@@ -1107,6 +1124,7 @@ def uploader():
                 f"{API_BASE_URL}/api/db/insert-into-epgu-document",
                 json={
                     "user_guid": jwt_doc_to_nstu._asdict()['user_guid'],
+                    "appnumber": jwt_doc_to_nstu._asdict()['appnumber'],
                     "json_data": jwt_doc_to_nstu._asdict()['data_json'],
                     "id_documenttype": jwt_doc_to_nstu._asdict()['id_documenttype']
                 },
@@ -1144,33 +1162,24 @@ def status_syncer():
         headers={"Content-Type": "application/json"},
     )
     resp_json = resp_ciu.json()
-    print(resp_json)
     if resp_json:
         for status in resp_json:
             jwt = session.query(
                 t_vw_jwt_to_nstu
             ).filter(
-                t_vw_jwt_to_nstu.c.user_guid == status['epgu_id'],
+                t_vw_jwt_to_nstu.c.appnumber == status['epgu_application_id'],
                 t_vw_jwt_to_nstu.c.id_datatype == 1
             ).first()
-            print(jwt._asdict())
-            application_uid_upgu = nested_lookup(
-                key='AppNumber',
-                document=json.loads(jwt._asdict()['json']),
-                with_keys=False,
-                wild=False
-            )[0]
             resp_status = edit_application_status_list(
-                application_uid_upgu=int(application_uid_upgu),
+                application_uid_upgu=jwt._asdict()['appnumber'],
                 id_status=status['id_ss_applicationstatuses']
             )
             if resp_status:
                 if resp_status["header"].get("payloadType") == "success":
-                    print('opa')
                     session.query(
                         Jwt
                     ).filter(
-                        Jwt.user_guid == status['epgu_id']
+                        Jwt.appnumber == status['epgu_application_id']
                     ).update(
                         {
                             Jwt.current_status: status['id_ss_applicationstatuses'],
@@ -1181,7 +1190,7 @@ def status_syncer():
                             name="status_syncer",
                             id_jwt=jwt._asdict()['id'],
                             status=1,
-                            query_dump=json.dumps(resp_json, ensure_ascii=False, sort_keys=False)
+                            query_dump=json.dumps(resp_status, ensure_ascii=False, sort_keys=False)
                         )
                     )
                     resp = r.post(
@@ -1299,5 +1308,5 @@ if __name__ == "__main__":
     # ?  job-а для получения документа, удостоверяющего личность, из заявления
     # uploader()
 
-    # job-а для синхронизации статусов ЕПГУ с БД ЦИУ
+    # ? job-а для синхронизации статусов ЕПГУ с БД ЦИУ
     status_syncer()

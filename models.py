@@ -31,6 +31,7 @@ t_vw_jwt_doc_to_nstu = Table(
     Column('id_jwt', Integer),
     Column('id_documenttype', Integer),
     Column('user_guid', Text),
+    Column('appnumber', Integer),
     Column('data_json', Text),
     Column('was_uploaded', Integer),
     Column('uploaded', TIMESTAMP)
@@ -42,6 +43,7 @@ t_vw_jwt_to_nstu = Table(
     Column('id', Integer),
     Column('id_datatype', Integer),
     Column('user_guid', Text),
+    Column('appnumber', Integer),
     Column('json', Text),
     Column('was_uploaded', Integer),
     Column('uploaded', TIMESTAMP)
@@ -70,6 +72,7 @@ class Jwt(Base):
     was_uploaded = Column(Integer, server_default=text("0"))
     uploaded = Column(TIMESTAMP)
     status_changed = Column(TIMESTAMP)
+    appnumber = Column(Integer)
 
     datatype = relationship('Datatype')
 
