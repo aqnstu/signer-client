@@ -950,10 +950,19 @@ def docifier():
         for jwt_json in jwt_json_list:
             flag = False
             json_data = json.loads(jwt_json.json)
-            docs = application_docs_finder(
-                d=json_data,
-                tag='Documents'
+            docs_search = nested_lookup(
+                key='Documents',
+                document=json_data,
+                with_keys=True,
+                wild=False,
             )
+            uid_search = nested_lookup(
+                key='UIDEpgu',
+                document=docs_search,
+                with_keys=False,
+                wild=False,
+            )
+            docs = {'document': uid_search}
             user_guid = nested_lookup(
                 key='GUID',
                 document=json_data,
@@ -1291,7 +1300,7 @@ if __name__ == "__main__":
     # print(edit_application_status_list(application_uid_upgu=12556058911, id_status=2))
 
     # ? job-а для получения очереди ЕГПУ
-    # getter()
+    getter()
 
     # ? job-а для получения данных по id из очереди ЕГПУ
     # viewer()
@@ -1309,4 +1318,4 @@ if __name__ == "__main__":
     # uploader()
 
     # ? job-а для синхронизации статусов ЕПГУ с БД ЦИУ
-    status_syncer()
+    # status_syncer()
