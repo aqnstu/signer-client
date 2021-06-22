@@ -73,6 +73,8 @@ class Jwt(Base):
     uploaded = Column(TIMESTAMP)
     status_changed = Column(TIMESTAMP)
     appnumber = Column(Integer)
+    was_confirmed = Column(Integer, server_default=text("0"))
+    confirmed = Column(TIMESTAMP)
 
     datatype = relationship('Datatype')
 

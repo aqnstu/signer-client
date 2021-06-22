@@ -1245,7 +1245,61 @@ def status_syncer():
         session.commit()
     else:
         session.add(
-            JwtJob(name="status_syncer", status=0)
+            JwtJob(name="status_syncer", status=0, comment="Нет новых данных")
+        )
+        session.commit()
+
+
+def confrimer():
+    """
+    Job-а для подтверждения получения сообщений из очереди ЕПГУ
+    """
+    jwt_list = session.query(Jwt).filter(
+        Jwt.was_viewed == 1,
+        Jwt.was_jsonify == 1,
+        Jwt.was_docify == 1,
+        Jwt.was_identify == 1,
+        Jwt.was_uploaded == 1,
+        Jwt.was_confirmed == 0
+    ).all()
+    if jwt_list:
+        for jwt in jwt_list:
+            resp = confirm_of_getting_data(id_jwt=jwt.id_jwt_epgu)
+            if resp:
+                if resp.get('result') == 'true':
+                    session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_confirmed: 1})
+                    session.add(
+                        JwtJob(
+                            name="confrimer",
+                            id_jwt=jwt.id,
+                            status=1,
+                            query_dump=json.dumps(resp, ensure_ascii=False, sort_keys=False)
+                        )
+                    )
+                else:
+                    session.add(
+                        JwtJob(
+                            name="confrimer",
+                            id_jwt=jwt.id,
+                            status=0,
+                            query_dump=json.dumps(resp, ensure_ascii=False, sort_keys=False),
+                            comment='result != true при попытке подтверждения получения id_jwt'
+                        )
+                    )
+            else:
+                session.add(
+                    JwtJob(
+                        name="confrimer",
+                        id_jwt=jwt.id,
+                        status=0,
+                        query_dump=json.dumps(resp, ensure_ascii=False, sort_keys=False),
+                        comment='Некорректный ответ при попытке подтверждения получения id_jwt'
+                    )
+                )
+            session.commit()
+    else:
+        session.add(
+            JwtJob(name="confrimer", status=0, comment="Нет новых данных")
         )
         session.commit()
 
@@ -1269,7 +1323,10 @@ if __name__ == "__main__":
     # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1137106)))
 
     # ? получение данных из очереди ЕПГУ
-    # print(get_info_from_query(get_all_messages=True, queue='epgu'))
+    # print(get_info_from_query(get_all_messages=True, queue='service'))
+
+    # ? подтверждение получения сообщения из очереди
+    # print(confirm_of_getting_data(id_jwt=1126430))
 
     # ? выгрузка данных из БД в СС
     # d = get_data_from_db(entity_type='entranceTest', stage=3)
@@ -1300,7 +1357,7 @@ if __name__ == "__main__":
     # print(edit_application_status_list(application_uid_upgu=12556058911, id_status=2))
 
     # ? job-а для получения очереди ЕГПУ
-    getter()
+    # getter()
 
     # ? job-а для получения данных по id из очереди ЕГПУ
     # viewer()
@@ -1319,3 +1376,6 @@ if __name__ == "__main__":
 
     # ? job-а для синхронизации статусов ЕПГУ с БД ЦИУ
     # status_syncer()
+
+    # ? job-а для подтверждения получения сообщений из очереди ЕПГУ
+    confrimer()
