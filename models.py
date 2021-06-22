@@ -25,10 +25,25 @@ t_sqlite_sequence = Table(
 )
 
 
+t_vw_jwt_achievement_to_nstu = Table(
+    'vw_jwt_achievement_to_nstu', metadata,
+    Column('id', Integer),
+    Column('id_jwt', Integer),
+    Column('id_jwt_epgu', Integer),
+    Column('id_category', Integer),
+    Column('user_guid', Text),
+    Column('appnumber', Integer),
+    Column('data_json', Text),
+    Column('was_uploaded', Integer),
+    Column('uploaded', TIMESTAMP)
+)
+
+
 t_vw_jwt_doc_to_nstu = Table(
     'vw_jwt_doc_to_nstu', metadata,
     Column('id', Integer),
     Column('id_jwt', Integer),
+    Column('id_jwt_epgu', Integer),
     Column('id_documenttype', Integer),
     Column('user_guid', Text),
     Column('appnumber', Integer),
@@ -41,6 +56,7 @@ t_vw_jwt_doc_to_nstu = Table(
 t_vw_jwt_to_nstu = Table(
     'vw_jwt_to_nstu', metadata,
     Column('id', Integer),
+    Column('id_jwt_epgu', Integer),
     Column('id_datatype', Integer),
     Column('user_guid', Text),
     Column('appnumber', Integer),
@@ -75,8 +91,24 @@ class Jwt(Base):
     appnumber = Column(Integer)
     was_confirmed = Column(Integer, server_default=text("0"))
     confirmed = Column(TIMESTAMP)
+    was_achievementified = Column(Integer, server_default=text("0"))
+    achievementified = Column(TIMESTAMP)
 
     datatype = relationship('Datatype')
+
+
+class JwtAchievement(Base):
+    __tablename__ = 'jwt_achievement'
+
+    id = Column(Integer, primary_key=True)
+    id_jwt = Column(ForeignKey('jwt.id'))
+    id_category = Column(Integer)
+    data_json = Column(Text)
+    added = Column(TIMESTAMP, server_default=text("current_timestamp"))
+    was_uploaded = Column(Integer, server_default=text("0"))
+    uploaded = Column(TIMESTAMP)
+
+    jwt = relationship('Jwt')
 
 
 class JwtDoc(Base):

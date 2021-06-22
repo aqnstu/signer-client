@@ -12,7 +12,11 @@ import yaml
 from config import API_BASE_URL, SS
 from db import session
 from log import logger
-from models import Datatype, Jwt, JwtJob, JwtJson, JwtDoc, t_vw_jwt_to_nstu, t_vw_jwt_doc_to_nstu
+from models import (
+    Datatype, Jwt, JwtJob,
+    JwtJson, JwtDoc, JwtAchievement,
+    t_vw_jwt_to_nstu, t_vw_jwt_doc_to_nstu, t_vw_jwt_achievement_to_nstu
+)
 from signer import create_jwt_via_api
 
 
@@ -128,7 +132,7 @@ def check_binding_cert_to_org() -> str:
     return resp.json()
 
 
-def get_data(entity_type: str, uid: str) -> str:
+def get_data(entity_type: str, uid: str, _payload: str = None) -> str:
     """
     Получение записи из системы.
     """
@@ -139,7 +143,10 @@ def get_data(entity_type: str, uid: str) -> str:
         "kpp": SS["KPP"],
     }
     payload = f"<PackageData><{entity_type[0].upper() + entity_type[1:]}><UID>{uid}</UID></{entity_type[0].upper() + entity_type[1:]}></PackageData>"
-    jwt = create_jwt_via_api(header=header, payload=payload)
+    if _payload:
+        jwt = create_jwt_via_api(header=header, payload=_payload)
+    else:
+        jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
         f"{SS['BASE_URL']}/api/token/new",
         json={
@@ -744,6 +751,45 @@ def edit_application_status_list(application_uid_upgu: int, id_status: int):
         return None
 
 
+def get_app_achievements_from_epgu(appnumber: int, uid_epgu: int):
+    """
+    Получить достижения абитуриента
+    """
+    payload = f"""
+    <PackageData>
+        <AppAchievement>
+            <ApplicationIDChoice>
+                <UIDEpgu>{appnumber}</UIDEpgu>
+            </ApplicationIDChoice>
+            <AchievementIDChoice>
+                <UIDEpgu>{uid_epgu}</UIDEpgu>
+            </AchievementIDChoice>
+        </AppAchievement>
+    </PackageData>
+    """
+    id_jwt = get_data(entity_type='appAchievement', uid=None, _payload=payload)
+    time.sleep(3)
+    info = get_info_from_query(id_jwt=int(id_jwt))
+    data = decode_base64_dict_to_utf8(info)
+    if not data:
+        raise ValueError(
+            'Результаты обработки отсутствуют для данного id_jwt!'
+        )
+
+    if data.get('header', {}).get('payloadType') == 'success':
+        return {
+            'success': True,
+            'id_jwt': id_jwt,
+            'payload': ordereddict_to_dict(xmltodict.parse(data["payload"]))["PackageData"] if data["payload"] else None
+        }
+    else:
+        return {
+            'success': False,
+            'id_jwt': id_jwt,
+            'payload': ''
+        }
+
+
 def getter():
     """
     Job-а для получение idJwts из очереди ЕПГУ
@@ -765,11 +811,13 @@ def getter():
                 )
             else:
                 session.add(
-                    JwtJob(name="getter", status=0, query_dump=str(queue))
+                    JwtJob(name="getter", status=0, query_dump=str(queue), comment="Нет новых данных")
                 )
             session.commit()
         else:
-            session.add(JwtJob(name="getter", status=0, query_dump=str(queue)))
+            session.add(
+                JwtJob(name="getter", status=0, query_dump=str(queue), comment="Очередь пуста")
+            )
             session.commit()
     else:
         session.add(JwtJob(name="getter", status=0, comment="Проблема с получением данных из очереди ЕПГУ! Возможно она недоступна."))
@@ -833,7 +881,7 @@ def viewer():
                 session.commit()
     else:
         session.add(
-            JwtJob(name="viewer", status=0, comment="Нет новых данных для просмотра")
+            JwtJob(name="viewer", status=0, comment="Нет новых данных")
         )
         session.commit()
 
@@ -969,7 +1017,7 @@ def docifier():
                 with_keys=False,
                 wild=False
             )
-            if docs and user_guid:
+            if docs['document'] and user_guid:
                 flag = True
                 for k, v in docs.items():
                     for el in v:
@@ -1016,7 +1064,7 @@ def identifier():
     '''
     jwt_list = session.query(
         Jwt
-    ).filter(Jwt.id_datatype == 1, Jwt.was_jsonify == 1, Jwt.was_docify == 1, Jwt.was_identify == 0).all()
+    ).filter(Jwt.id_datatype == 1, Jwt.was_jsonify == 1, Jwt.was_identify == 0).all()
     jwt_json_list = session.query(
         JwtJson
     ).filter(JwtJson.id_jwt.in_([jwt.id for jwt in jwt_list]), JwtJson.json != None).all()
@@ -1043,7 +1091,7 @@ def identifier():
                 with_keys=False,
                 wild=False
             )
-            if idents and user_guid:
+            if idents['identification'] and user_guid:
                 flag = True
                 for k, v in idents.items():
                     for el in v:
@@ -1084,6 +1132,106 @@ def identifier():
         session.commit()
 
 
+def achievementifier():
+    """
+    Job-а для получения достижений из заявления
+    """
+    jwt_list = session.query(
+        Jwt
+    ).filter(Jwt.id_datatype == 1, Jwt.was_jsonify == 1, Jwt.was_achievementified == 0).all()
+    jwt_json_list = session.query(
+        JwtJson
+    ).filter(JwtJson.id_jwt.in_([jwt.id for jwt in jwt_list]), JwtJson.json != None).all()
+    if jwt_json_list:
+        for jwt_json in jwt_json_list:
+            json_data = json.loads(jwt_json.json)
+            achievement_search = nested_lookup(
+                key='AppAchievements',
+                document=json_data,
+                with_keys=True,
+                wild=False,
+            )
+            if not achievement_search:
+                session.query(Jwt).filter(Jwt.id == jwt_json.id_jwt).update({Jwt.was_achievementified: 1})
+                session.add(
+                    JwtJob(
+                        name="achievementifier",
+                        id_jwt=jwt_json.id_jwt,
+                        status=1,
+                        query_dump=jwt_json.json,
+                        comment="Нет достижения в заявлении"
+                    )
+                )
+                session.commit()
+                continue
+            uid_search = nested_lookup(
+                key='UIDEpgu',
+                document=achievement_search,
+                with_keys=False,
+                wild=False,
+            )
+            achievements = {'achievement': uid_search}
+            appnumber = nested_lookup(
+                key='AppNumber',
+                document=json_data,
+                with_keys=False,
+                wild=False
+            )
+            if achievements['achievement'] and appnumber:
+                for k, v in achievements.items():
+                    for el in v:
+                        ach = get_app_achievements_from_epgu(
+                            appnumber=appnumber[0],
+                            uid_epgu=el
+                        )
+                        logger.warning(f"docifier -- document id_jwt -- {ach.get('id_jwt')}")
+                        if ach.get('success') == True:
+                            id_category = nested_lookup(
+                                key='IDCategory',
+                                document=ach.get('payload'),
+                                with_keys=False,
+                                wild=False
+                            )
+                            session.add(
+                                JwtAchievement(
+                                    id_jwt=jwt_json.id_jwt,
+                                    id_category=int(id_category[0]),
+                                    data_json=json.dumps(ach.get('payload'), ensure_ascii=False, sort_keys=False),
+                                )
+                            )
+                            session.add(JwtJob(
+                                name="achievementifier",
+                                id_jwt=jwt_json.id_jwt,
+                                status=1,
+                                query_dump=json.dumps(ach.get('payload'), ensure_ascii=False, sort_keys=False)
+                            ))
+                            session.query(Jwt).filter(Jwt.id == jwt_json.id_jwt).update({Jwt.was_achievementified: 1})
+                            session.commit()
+                        else:
+                            session.add(JwtJob(
+                                name="achievementifier",
+                                id_jwt=jwt_json.id_jwt,
+                                status=0,
+                                query_dump=json.dumps(ach.get('payload'), ensure_ascii=False, sort_keys=False),
+                                comment='Ошибка при получении документа, смотрите payload'
+                            ))
+                            session.commit()
+            else:
+                session.add(JwtJob(
+                    name="achievementifier",
+                    id_jwt=jwt_json.id_jwt,
+                    status=0,
+                    query_dump=jwt_json.json,
+                    comment='Проблема с получением appnumber'
+                ))
+                session.commit()
+    else:
+        session.add(
+            JwtJob(name="achievementifier", status=0, comment="Нет новых данных")
+        )
+        session.commit()
+
+
 def uploader():
     """
     Job-а для выгрузки данных в БД ЦИУ (очередь ЕПГУ и связанные документы)
@@ -1096,6 +1244,7 @@ def uploader():
                 json={
                     "user_guid": jwt_to_nstu._asdict()['user_guid'],
                     "appnumber": jwt_to_nstu._asdict()['appnumber'],
+                    "id_jwt_epgu": jwt_to_nstu._asdict()['id_jwt_epgu'],
                     "json_data": jwt_to_nstu._asdict()['json'],
                     "id_datatype": jwt_to_nstu._asdict()['id_datatype']
                 },
@@ -1108,7 +1257,8 @@ def uploader():
                         name="uploader",
                         id_jwt=jwt_to_nstu._asdict()['id'],
                         status=1,
-                        query_dump=json.dumps(jwt_to_nstu._asdict(), ensure_ascii=False, sort_keys=False)
+                        query_dump=json.dumps(jwt_to_nstu._asdict(), ensure_ascii=False, sort_keys=False, default=str),
+                        comment='jwt'
                     )
                 )
             else:
@@ -1118,7 +1268,7 @@ def uploader():
             session.commit()
     else:
         session.add(
-            JwtJob(name="uploader", status=0, comment='jwt')
+            JwtJob(name="uploader", status=0, comment='jwt (нет новых данных)')
         )
         session.commit()
 
@@ -1134,6 +1284,7 @@ def uploader():
                 json={
                     "user_guid": jwt_doc_to_nstu._asdict()['user_guid'],
                     "appnumber": jwt_doc_to_nstu._asdict()['appnumber'],
+                    "id_jwt_epgu": jwt_doc_to_nstu._asdict()['id_jwt_epgu'],
                     "json_data": jwt_doc_to_nstu._asdict()['data_json'],
                     "id_documenttype": jwt_doc_to_nstu._asdict()['id_documenttype']
                 },
@@ -1146,7 +1297,8 @@ def uploader():
                         name="uploader",
                         id_jwt=jwt_doc_to_nstu._asdict()['id'],
                         status=1,
-                        query_dump=json.dumps(jwt_doc_to_nstu._asdict(), ensure_ascii=False, sort_keys=False)
+                        query_dump=json.dumps(jwt_doc_to_nstu._asdict(), ensure_ascii=False, sort_keys=False, default=str),
+                        comment='docs'
                     )
                 )
             else:
@@ -1156,7 +1308,47 @@ def uploader():
             session.commit()
     else:
         session.add(
-            JwtJob(name="uploader", status=0, comment='docs')
+            JwtJob(name="uploader", status=0, comment='docs (нет новых данных)')
+        )
+        session.commit()
+
+    jwt_achievement_to_nstu_list = session.query(
+        t_vw_jwt_achievement_to_nstu
+    ).filter(
+        t_vw_jwt_achievement_to_nstu.c.was_uploaded == 0
+    ).all()
+    if jwt_achievement_to_nstu_list:
+        for jwt_achievement_to_nstu in jwt_achievement_to_nstu_list:
+            resp = r.post(
+                f"{API_BASE_URL}/api/db/insert-into-epgu-achievement",
+                json={
+                    "user_guid": jwt_achievement_to_nstu._asdict()['user_guid'],
+                    "appnumber": jwt_achievement_to_nstu._asdict()['appnumber'],
+                    "id_jwt_epgu": jwt_achievement_to_nstu._asdict()['id_jwt_epgu'],
+                    "json_data": jwt_achievement_to_nstu._asdict()['data_json'],
+                    "id_category": jwt_achievement_to_nstu._asdict()['id_category']
+                },
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code == 200:
+                session.query(JwtAchievement).filter(JwtAchievement.id == jwt_achievement_to_nstu._asdict()['id']).update({JwtAchievement.was_uploaded: 1})
+                session.add(
+                    JwtJob(
+                        name="uploader",
+                        id_jwt=jwt_achievement_to_nstu._asdict()['id'],
+                        status=1,
+                        query_dump=json.dumps(jwt_achievement_to_nstu._asdict(), ensure_ascii=False, sort_keys=False, default=str),
+                        comment='achievements'
+                    )
+                )
+            else:
+                session.add(
+                    JwtJob(name="uploader", status=0, comment='achievements (проблема с вставкой)')
+                )
+            session.commit()
+    else:
+        session.add(
+            JwtJob(name="uploader", status=0, comment='achievements (нет новых данных)')
         )
         session.commit()
 
@@ -1177,7 +1369,8 @@ def status_syncer():
                 t_vw_jwt_to_nstu
             ).filter(
                 t_vw_jwt_to_nstu.c.appnumber == status['epgu_application_id'],
-                t_vw_jwt_to_nstu.c.id_datatype == 1
+                t_vw_jwt_to_nstu.c.id_datatype == 1,
+                t_vw_jwt_to_nstu.c.was_uploaded == 1
             ).first()
             resp_status = edit_application_status_list(
                 application_uid_upgu=jwt._asdict()['appnumber'],
@@ -1259,6 +1452,7 @@ def confrimer():
         Jwt.was_jsonify == 1,
         Jwt.was_docify == 1,
         Jwt.was_identify == 1,
+        Jwt.was_achievementified == 1,
         Jwt.was_uploaded == 1,
         Jwt.was_confirmed == 0
     ).all()
@@ -1323,7 +1517,7 @@ if __name__ == "__main__":
     # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1137106)))
 
     # ? получение данных из очереди ЕПГУ
-    # print(get_info_from_query(get_all_messages=True, queue='service'))
+    # print(get_info_from_query(get_all_messages=True, queue='epgu'))
 
     # ? подтверждение получения сообщения из очереди
     # print(confirm_of_getting_data(id_jwt=1126430))
@@ -1353,8 +1547,13 @@ if __name__ == "__main__":
     #     )
     # )
 
-    # ? Изменить статус заялвения на ЕПГУ
+    # ? изменить статус заялвения на ЕПГУ
     # print(edit_application_status_list(application_uid_upgu=12556058911, id_status=2))
+    
+    # ? получить достижения
+    # s = get_app_achievements_from_epgu(appnumber=1255604171, uid_epgu=29662)
+    # with open('achieve.json', 'w+') as f:
+    #     f.write(json.dumps(s, ensure_ascii=False, sort_keys=False))
 
     # ? job-а для получения очереди ЕГПУ
     # getter()
@@ -1363,13 +1562,16 @@ if __name__ == "__main__":
     # viewer()
 
     # ? job-а для конвертирования полученных данных из XML в JSON
-    # jsonifier()
+    jsonifier()
 
     # ? job-а для полученния документов из заявления
     # docifier()
 
     # ? job-а для получения документа, удостоверяющего личность, из заявления
     # identifier()
+    
+    # ? job-а для получения достижений из заявления
+    # achievementifier()
 
     # ?  job-а для получения документа, удостоверяющего личность, из заявления
     # uploader()
@@ -1378,4 +1580,4 @@ if __name__ == "__main__":
     # status_syncer()
 
     # ? job-а для подтверждения получения сообщений из очереди ЕПГУ
-    confrimer()
+    # confrimer()
