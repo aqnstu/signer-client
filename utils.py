@@ -908,13 +908,20 @@ def jsonifier():
                     document=data_json,
                     with_keys=False,
                     wild=False
-                )[0]
+                )
                 app_number = nested_lookup(
                     key='AppNumber',
                     document=data_json,
                     with_keys=False,
                     wild=False
-                )[0]
+                )
+                if jwt.id_datatype == 5:
+                    app_cancel = nested_lookup(
+                        key='UIDEpgu',
+                        document=data_json,
+                        with_keys=False,
+                        wild=False
+                    )
                 session.add(
                     JwtJson(
                         id_jwt=jwt.id,
@@ -937,9 +944,39 @@ def jsonifier():
                 session.add(
                     JwtJob(name="jsonifier", id_jwt=jwt.id, status=0, query_dump=str(jwt.data))
                 )
-            session.query(Jwt).filter(Jwt.id == jwt.id).update(
-                {Jwt.was_jsonify: 1, Jwt.user_guid: user_guid, Jwt.appnumber: app_number}
-            )
+            if user_guid and app_number:
+                session.query(Jwt).filter(Jwt.id == jwt.id).update(
+                    {
+                        Jwt.was_jsonify: 1,
+                        Jwt.user_guid: user_guid[0],
+                        Jwt.appnumber: app_number[0]
+                    }
+                )
+            elif not user_guid and app_number:
+                session.query(Jwt).filter(Jwt.id == jwt.id).update(
+                    {
+                        Jwt.was_jsonify: 1,
+                        Jwt.appnumber: app_number[0]
+                    }
+                )
+            elif user_guid and not app_number:
+                session.query(Jwt).filter(Jwt.id == jwt.id).update(
+                    {
+                        Jwt.was_jsonify: 1,
+                        Jwt.user_guid: user_guid[0]
+                    }
+                )
+            elif app_cancel:
+                session.query(Jwt).filter(Jwt.id == jwt.id).update(
+                    {
+                        Jwt.was_jsonify: 1,
+                        Jwt.appnumber: app_cancel[0]
+                    }
+                )
+            else:
+                session.query(Jwt).filter(Jwt.id == jwt.id).update(
+                    {Jwt.was_jsonify: 1}
+                )
             session.commit()
     else:
         session.add(
@@ -1159,7 +1196,7 @@ def achievementifier():
                         id_jwt=jwt_json.id_jwt,
                         status=1,
                         query_dump=jwt_json.json,
-                        comment="Нет достижения в заявлении"
+                        comment="Нет достижений в заявлении"
                     )
                 )
                 session.commit()
@@ -1203,7 +1240,6 @@ def achievementifier():
                                 name="achievementifier",
                                 id_jwt=jwt_json.id_jwt,
                                 status=1,
-                                query_dump=json.dumps(ach.get('payload'), ensure_ascii=False, sort_keys=False)
                             ))
                             session.query(Jwt).filter(Jwt.id == jwt_json.id_jwt).update({Jwt.was_achievementified: 1})
                             session.commit()
@@ -1212,7 +1248,6 @@ def achievementifier():
                                 name="achievementifier",
                                 id_jwt=jwt_json.id_jwt,
                                 status=0,
-                                query_dump=json.dumps(ach.get('payload'), ensure_ascii=False, sort_keys=False),
                                 comment='Ошибка при получении документа, смотрите payload'
                             ))
                             session.commit()
@@ -1221,7 +1256,6 @@ def achievementifier():
                     name="achievementifier",
                     id_jwt=jwt_json.id_jwt,
                     status=0,
-                    query_dump=jwt_json.json,
                     comment='Проблема с получением appnumber'
                 ))
                 session.commit()
@@ -1562,7 +1596,7 @@ if __name__ == "__main__":
     # viewer()
 
     # ? job-а для конвертирования полученных данных из XML в JSON
-    jsonifier()
+    # jsonifier()
 
     # ? job-а для полученния документов из заявления
     # docifier()
