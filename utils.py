@@ -1484,9 +1484,6 @@ def confrimer():
     jwt_list = session.query(Jwt).filter(
         Jwt.was_viewed == 1,
         Jwt.was_jsonify == 1,
-        Jwt.was_docify == 1,
-        Jwt.was_identify == 1,
-        Jwt.was_achievementified == 1,
         Jwt.was_uploaded == 1,
         Jwt.was_confirmed == 0
     ).all()
@@ -1614,4 +1611,4 @@ if __name__ == "__main__":
     # status_syncer()
 
     # ? job-а для подтверждения получения сообщений из очереди ЕПГУ
-    # confrimer()
+    confrimer()
