@@ -1329,9 +1329,8 @@ def uploader():
                 session.add(
                     JwtJob(
                         name="uploader",
-                        id_jwt=jwt_doc_to_nstu._asdict()['id'],
+                        id_jwt=jwt_doc_to_nstu._asdict()['id_jwt'],
                         status=1,
-                        query_dump=json.dumps(jwt_doc_to_nstu._asdict(), ensure_ascii=False, sort_keys=False, default=str),
                         comment='docs'
                     )
                 )
@@ -1369,9 +1368,8 @@ def uploader():
                 session.add(
                     JwtJob(
                         name="uploader",
-                        id_jwt=jwt_achievement_to_nstu._asdict()['id'],
+                        id_jwt=jwt_achievement_to_nstu._asdict()['id_jwt'],
                         status=1,
-                        query_dump=json.dumps(jwt_achievement_to_nstu._asdict(), ensure_ascii=False, sort_keys=False, default=str),
                         comment='achievements'
                     )
                 )
@@ -1477,7 +1475,7 @@ def status_syncer():
         session.commit()
 
 
-def confrimer():
+def confirmer():
     """
     Job-а для подтверждения получения сообщений из очереди ЕПГУ
     """
@@ -1495,7 +1493,7 @@ def confrimer():
                     session.query(Jwt).filter(Jwt.id == jwt.id).update({Jwt.was_confirmed: 1})
                     session.add(
                         JwtJob(
-                            name="confrimer",
+                            name="confirmer",
                             id_jwt=jwt.id,
                             status=1,
                             query_dump=json.dumps(resp, ensure_ascii=False, sort_keys=False)
@@ -1504,7 +1502,7 @@ def confrimer():
                 else:
                     session.add(
                         JwtJob(
-                            name="confrimer",
+                            name="confirmer",
                             id_jwt=jwt.id,
                             status=0,
                             query_dump=json.dumps(resp, ensure_ascii=False, sort_keys=False),
@@ -1514,7 +1512,7 @@ def confrimer():
             else:
                 session.add(
                     JwtJob(
-                        name="confrimer",
+                        name="confirmer",
                         id_jwt=jwt.id,
                         status=0,
                         query_dump=json.dumps(resp, ensure_ascii=False, sort_keys=False),
@@ -1524,7 +1522,7 @@ def confrimer():
             session.commit()
     else:
         session.add(
-            JwtJob(name="confrimer", status=0, comment="Нет новых данных")
+            JwtJob(name="confirmer", status=0, comment="Нет новых данных")
         )
         session.commit()
 
@@ -1611,4 +1609,4 @@ if __name__ == "__main__":
     # status_syncer()
 
     # ? job-а для подтверждения получения сообщений из очереди ЕПГУ
-    confrimer()
+    confirmer()
