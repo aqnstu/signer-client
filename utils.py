@@ -657,7 +657,7 @@ def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
         },
         headers={"Content-Type": "application/json"},
     )
-    time.sleep(3)
+    time.sleep(7)
     try:
         data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
         return {
@@ -665,7 +665,7 @@ def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
             'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
         }
     except:
-        logger.error(resp.text)
+        logger.error(f"doc: {user_guid} - {doc_uid_upgu} - {resp.text}")
         return None
 
 
@@ -707,11 +707,11 @@ def get_identification_from_epgu(user_guid: str, identification_uid_upgu: int) -
             'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
         }
     except:
-        logger.error(resp.text)
+        logger.error(f"ident: {user_guid} - {identification_uid_upgu} - {resp.text}")
         return None
 
 
-def edit_application_status_list(application_uid_upgu: int, id_status: int):
+def edit_application_status_list(application_uid_upgu: int, id_status: int, remark: str = None):
     """
     Изменить статус завяления ЕПГУ
     """
@@ -721,16 +721,30 @@ def edit_application_status_list(application_uid_upgu: int, id_status: int):
         "ogrn": SS["OGRN"],
         "kpp": SS["KPP"],
     }
-    payload = f"""
-    <PackageData>
-        <ApplicationStatus>
-        <IDDocChoice>
-        <UIDEpgu>{application_uid_upgu}</UIDEpgu>
-        </IDDocChoice>
-        <IDStatus>{id_status}</IDStatus>
-        </ApplicationStatus>
-    </PackageData>
-    """
+    if not remark:
+        payload = f"""
+        <PackageData>
+            <ApplicationStatus>
+                <IDDocChoice>
+                    <UIDEpgu>{application_uid_upgu}</UIDEpgu>
+                </IDDocChoice>
+                <IDStatus>{id_status}</IDStatus>
+            </ApplicationStatus>
+        </PackageData>
+        """
+    else:
+        payload = f"""
+        <PackageData>
+            <ApplicationStatus>
+                <IDDocChoice>
+                    <UIDEpgu>{application_uid_upgu}</UIDEpgu>
+                </IDDocChoice>
+                <IDStatus>{id_status}</IDStatus>
+                <Comment>{remark}</Comment>
+            </ApplicationStatus>
+        </PackageData>
+        """
+    print(payload)
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
         f"{SS['BASE_URL']}/api/token/new",
@@ -1062,8 +1076,11 @@ def docifier():
                             user_guid=user_guid[0],
                             doc_uid_upgu=el
                         )
+                        if doc['payload'].get('Error'):
+                            logger.warning(f"docifier (skip) -- {jwt_json.id_jwt} -- {doc['header'].get('idJwt')}")
+                            continue
                         # TODO: если payload пустой ???
-                        logger.warning(f"docifier -- document id_jwt -- {doc['header'].get('idJwt')}")
+                        logger.warning(f"docifier -- {jwt_json.id_jwt} -- {doc['header'].get('idJwt')}")
                         id_doctype = nested_lookup(
                             key='IDDocumentType',
                             document=doc['payload'],
@@ -1073,7 +1090,7 @@ def docifier():
                         session.add(
                             JwtDoc(
                                 id_jwt=jwt_json.id_jwt,
-                                id_documenttype=int(id_doctype[0]),
+                                id_documenttype=int(id_doctype[0]) if id_doctype else None,
                                 data_json=json.dumps(doc['payload'], ensure_ascii=False, sort_keys=False),
                             )
                         )
@@ -1137,7 +1154,7 @@ def identifier():
                             identification_uid_upgu=el
                         )
                         # TODO: если payload пустой ???
-                        logger.warning(f"docifier -- document id_jwt -- {ident_doc['header'].get('idJwt')}")
+                        logger.warning(f"identifier -- {jwt_json.id_jwt} -- {ident_doc['header'].get('idJwt')}")
                         id_doctype = nested_lookup(
                             key='IDDocumentType',
                             document=ident_doc['payload'],
@@ -1221,7 +1238,7 @@ def achievementifier():
                             appnumber=appnumber[0],
                             uid_epgu=el
                         )
-                        logger.warning(f"docifier -- document id_jwt -- {ach.get('id_jwt')}")
+                        logger.warning(f"achievementifier -- {jwt_json.id_jwt} -- {ach.get('id_jwt')}")
                         if ach.get('success') == True:
                             id_category = nested_lookup(
                                 key='IDCategory',
@@ -1397,6 +1414,7 @@ def status_syncer():
     resp_json = resp_ciu.json()
     if resp_json:
         for status in resp_json:
+            print(status)
             jwt = session.query(
                 t_vw_jwt_to_nstu
             ).filter(
@@ -1406,7 +1424,8 @@ def status_syncer():
             ).first()
             resp_status = edit_application_status_list(
                 application_uid_upgu=jwt._asdict()['appnumber'],
-                id_status=status['id_ss_applicationstatuses']
+                id_status=status['id_ss_applicationstatuses'],
+                remark=status['remark']
             )
             if resp_status:
                 if resp_status["header"].get("payloadType") == "success":
@@ -1436,6 +1455,7 @@ def status_syncer():
                         },
                         headers={"Content-Type": "application/json"},
                     )
+                    session.commit()
                 else:
                     session.add(
                         JwtJob(
@@ -1454,6 +1474,7 @@ def status_syncer():
                         },
                         headers={"Content-Type": "application/json"},
                     )
+                    session.commit()
             else:
                 session.add(
                     JwtJob(name="status_syncer", status=0, comment='(очередь недоступна)')
@@ -1467,7 +1488,7 @@ def status_syncer():
                     },
                     headers={"Content-Type": "application/json"},
                 )
-        session.commit()
+                session.commit()
     else:
         session.add(
             JwtJob(name="status_syncer", status=0, comment="Нет новых данных")
@@ -1543,7 +1564,7 @@ if __name__ == "__main__":
     # )
 
     # ? получение данных из очереди СС
-    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=1137106)))
+    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=3241591)))
 
     # ? получение данных из очереди ЕПГУ
     # print(get_info_from_query(get_all_messages=True, queue='epgu'))
@@ -1563,8 +1584,8 @@ if __name__ == "__main__":
     # ? получить документ из ЕПГУ
     # print(
     #     get_document_from_epgu(
-    #         user_guid='7a7bf3b5-f6ae-4a20-bfe7-94728c3d7778',
-    #         doc_uid_upgu=54160
+    #         user_guid='ee02cd6b-1528-458d-9330-81341cee434d',
+    #         doc_uid_upgu=42279
     #     )
     # )
 
@@ -1609,4 +1630,5 @@ if __name__ == "__main__":
     # status_syncer()
 
     # ? job-а для подтверждения получения сообщений из очереди ЕПГУ
-    confirmer()
+    # confirmer()
+    ...
