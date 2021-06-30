@@ -657,16 +657,21 @@ def get_document_from_epgu(user_guid: str, doc_uid_upgu: int) -> dict:
         },
         headers={"Content-Type": "application/json"},
     )
-    time.sleep(7)
-    try:
+    flag = True
+    iters = 0
+    while flag:
         data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
-        return {
-            'header': data['header'],
-            'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
-        }
-    except:
-        logger.error(f"doc: {user_guid} - {doc_uid_upgu} - {resp.text}")
-        return None
+        if data:
+            flag = False
+        else:
+            iters += 1
+            if iters == 1:
+                logger.error(f"doc: {user_guid} - {doc_uid_upgu} - {resp.text}")
+            time.sleep(2)
+    return {
+        'header': data['header'],
+        'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
+    }
 
 
 def get_identification_from_epgu(user_guid: str, identification_uid_upgu: int) -> dict:
@@ -699,16 +704,21 @@ def get_identification_from_epgu(user_guid: str, identification_uid_upgu: int) -
         },
         headers={"Content-Type": "application/json"},
     )
-    time.sleep(3)
-    try:
+    flag = True
+    iters = 0
+    while flag:
         data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
-        return {
-            'header': data['header'],
-            'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
-        }
-    except:
-        logger.error(f"ident: {user_guid} - {identification_uid_upgu} - {resp.text}")
-        return None
+        if data:
+            flag = False
+        else:
+            iters += 1
+            if iters == 1:
+                logger.error(f"ident: {user_guid} - {identification_uid_upgu} - {resp.text}")
+            time.sleep(2)
+    return {
+        'header': data['header'],
+        'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
+    }
 
 
 def edit_application_status_list(application_uid_upgu: int, id_status: int, remark: str = None):
@@ -744,7 +754,6 @@ def edit_application_status_list(application_uid_upgu: int, id_status: int, rema
             </ApplicationStatus>
         </PackageData>
         """
-    print(payload)
     jwt = create_jwt_via_api(header=header, payload=payload)
     resp = r.post(
         f"{SS['BASE_URL']}/api/token/new",
@@ -753,16 +762,21 @@ def edit_application_status_list(application_uid_upgu: int, id_status: int, rema
         },
         headers={"Content-Type": "application/json"},
     )
-    time.sleep(3)
-    try:
+    flag = True
+    iters = 0
+    while flag:
         data = decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=int(resp.json()["idJwt"])))
-        return {
-            'header': data['header'],
-            'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
-        }
-    except:
-        logger.error(resp.text)
-        return None
+        if data:
+            flag = False
+        else:
+            iters += 1
+            if iters == 1:
+                logger.error(f"stat: {application_uid_upgu} - {id_status} - {resp.text}")
+            time.sleep(2)
+    return {
+        'header': data['header'],
+        'payload': ordereddict_to_dict(xmltodict.parse(data['payload']))["PackageData"] if data['payload'] else ''
+    }
 
 
 def get_app_achievements_from_epgu(appnumber: int, uid_epgu: int):
@@ -783,12 +797,18 @@ def get_app_achievements_from_epgu(appnumber: int, uid_epgu: int):
     """
     id_jwt = get_data(entity_type='appAchievement', uid=None, _payload=payload)
     time.sleep(3)
-    info = get_info_from_query(id_jwt=int(id_jwt))
-    data = decode_base64_dict_to_utf8(info)
-    if not data:
-        raise ValueError(
-            'Результаты обработки отсутствуют для данного id_jwt!'
-        )
+    flag = True
+    iters = 0
+    while flag:
+        info = get_info_from_query(id_jwt=int(id_jwt))
+        data = decode_base64_dict_to_utf8(info)
+        if data:
+            flag = False
+        else:
+            iters += 1
+            if iters == 1:
+                logger.error(f"ach: {appnumber} - {uid_epgu} - {resp.text}")
+            time.sleep(2)
 
     if data.get('header', {}).get('payloadType') == 'success':
         return {
@@ -1391,6 +1411,7 @@ def uploader():
                     )
                 )
             else:
+                print(resp.text)
                 session.add(
                     JwtJob(name="uploader", status=0, comment='achievements (проблема с вставкой)')
                 )
@@ -1414,7 +1435,6 @@ def status_syncer():
     resp_json = resp_ciu.json()
     if resp_json:
         for status in resp_json:
-            print(status)
             jwt = session.query(
                 t_vw_jwt_to_nstu
             ).filter(
@@ -1564,7 +1584,7 @@ if __name__ == "__main__":
     # )
 
     # ? получение данных из очереди СС
-    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=3241591)))
+    # print(decode_base64_dict_to_utf8(get_info_from_query(get_all_messages=False, queue='service', id_jwt=3328426)))
 
     # ? получение данных из очереди ЕПГУ
     # print(get_info_from_query(get_all_messages=True, queue='epgu'))
@@ -1615,7 +1635,7 @@ if __name__ == "__main__":
     # jsonifier()
 
     # ? job-а для полученния документов из заявления
-    # docifier()
+    docifier()
 
     # ? job-а для получения документа, удостоверяющего личность, из заявления
     # identifier()
@@ -1631,4 +1651,3 @@ if __name__ == "__main__":
 
     # ? job-а для подтверждения получения сообщений из очереди ЕПГУ
     # confirmer()
-    ...
