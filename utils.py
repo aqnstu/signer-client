@@ -807,7 +807,7 @@ def get_app_achievements_from_epgu(appnumber: int, uid_epgu: int):
         else:
             iters += 1
             if iters == 1:
-                logger.error(f"ach: {appnumber} - {uid_epgu} - {resp.text}")
+                logger.error(f"ach: {appnumber} - {uid_epgu} - {id_jwt}")
             time.sleep(2)
 
     if data.get('header', {}).get('payloadType') == 'success':
@@ -1096,7 +1096,9 @@ def docifier():
                             user_guid=user_guid[0],
                             doc_uid_upgu=el
                         )
-                        if doc['payload'].get('Error'):
+                        print(type(doc))
+                        print(doc['header'])
+                        if doc['header'].get('payloadType') != 'success':
                             logger.warning(f"docifier (skip) -- {jwt_json.id_jwt} -- {doc['header'].get('idJwt')}")
                             continue
                         # TODO: если payload пустой ???
@@ -1635,13 +1637,13 @@ if __name__ == "__main__":
     # jsonifier()
 
     # ? job-а для полученния документов из заявления
-    docifier()
+    # docifier()
 
     # ? job-а для получения документа, удостоверяющего личность, из заявления
     # identifier()
     
     # ? job-а для получения достижений из заявления
-    # achievementifier()
+    achievementifier()
 
     # ?  job-а для получения документа, удостоверяющего личность, из заявления
     # uploader()
