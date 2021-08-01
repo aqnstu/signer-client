@@ -8,6 +8,21 @@ Base = declarative_base()
 metadata = Base.metadata
 
 
+class ApplicationList(Base):
+    __tablename__ = 'application_list'
+
+    id = Column(Integer, primary_key=True)
+    uid_competitive_group = Column(Integer, nullable=False)
+    name = Column(Text, nullable=False)
+    base64file = Column(Text, nullable=False)
+    fk_competition = Column(Integer, nullable=False)
+    added = Column(TIMESTAMP, nullable=False, server_default=text("current_timestamp"))
+    id_jwt_message = Column(Integer)
+    was_viewed = Column(Integer, server_default=text("0"))
+    message = Column(Text)
+    viewed = Column(TIMESTAMP)
+
+
 class Datatype(Base):
     __tablename__ = 'datatype'
 

@@ -286,7 +286,7 @@ def get_info_from_query(id_jwt: int = 0, get_all_messages=False, queue="service"
         return None
 
 
-def entity(action: str, entity_type: str, record: dict = None):
+def entity(action: str, entity_type: str, record: dict = {}):
     """
     Работа с сущностями в СС.
 
@@ -564,7 +564,7 @@ def confirm_all(queue="service"):
 
 
 def get_data_from_db(
-    entity_type: str, skip: int = 0, limit: int = 20000, stage: int = None
+    entity_type: str, skip: int = 0, limit: int = 20000, stage: int = None, competitive_group: int = None
 ) -> list:
     if entity_type not in (
         "subdivisionOrg",
@@ -580,6 +580,7 @@ def get_data_from_db(
         "entranceTest",
         "entranceTestBenefit",
         "entranceTestLocation",
+        "competitiveGroupApplicationsList"
     ):
         raise ValueError(
             f"entity_type {entity_type} не поддерживается, проверьте название сущности!"
@@ -599,12 +600,25 @@ def get_data_from_db(
         "entranceTest": "/api/db/get-entrance-test",
         "entranceTestBenefit": "/api/db/get-entrance-test-benefit",
         "entranceTestLocation": "/api/db/get-entrance-test-location",
+        "competitiveGroupApplicationsList": "/api/db/get-competitive-group-applications-list"
     }
 
     if entity_type == "entranceTest":
         resp = r.get(
             f"{API_BASE_URL}{translator[entity_type]}",
             params={"skip": skip, "limit": limit, "stage": stage},
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            return resp.json()
+        except:
+            logger.error(resp.text)
+            return None
+        
+    if entity_type == "competitiveGroupApplicationsList":
+        resp = r.get(
+            f"{API_BASE_URL}{translator[entity_type]}",
+            params={"skip": skip, "limit": limit, "stage": stage, "competitive_group": competitive_group},
             headers={"Content-Type": "application/json"},
         )
         try:
