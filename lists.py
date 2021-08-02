@@ -42,9 +42,10 @@ def get_competitive_group_applications_list_by_uid(uid: int) -> str:
         stage=None,
         competitive_group=uid,
     )
+    print(len(app_lists))
 
     app_lists_xml = []
-    for i, record in enumerate(app_lists[0:50]):
+    for i, record in enumerate(app_lists):
         record_lower = lower_dict_keys(record)
         if i == 0:
             head_xml = (
@@ -95,7 +96,7 @@ def upload_competitive_group_applications_lists():
         )
         app_list_base64 = to_base64_string(app_list)
         app_list_package = get_competitive_group_applications_list_package(
-            uid=competitive_group["UID"],
+            uid=f"{competitive_group['UID']}_{current_timestamp}",
             name=f"{competitive_group['Comment'][0:8]}_{competitive_group['fk_competition']}_{current_timestamp}",
             base64file=app_list_base64,
         )
@@ -144,7 +145,7 @@ def get_message_for_competitive_group_applications_lists():
                     )
                 time.sleep(0.5)
 
-        session.query(ApplicationList).filter(ApplicationList.id == records.id).update(
+        session.query(ApplicationList).filter(ApplicationList.id == record.id).update(
             {
                 ApplicationList.was_viewed: 1,
                 ApplicationList.message: json.dumps(

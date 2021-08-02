@@ -15,6 +15,11 @@
           {%- endif %}
         </IDApplicationChoice>
         <Rating>{{rating}}</Rating>
+        {%- if withouttests %}
+        <WithoutTests>{{withouttests}}</WithoutTests>
+        <ReasonWithoutTests>{{reasonwithouttests}}</ReasonWithoutTests>
+        {%- else %}
+        {%- endif %}
         <EntranceTest1>{{entrancetest1}}</EntranceTest1>
         <Result1>{{result1}}</Result1>
         <EntranceTest2>{{entrancetest2}}</EntranceTest2>
@@ -40,7 +45,6 @@
         <Addition>{{addition}}</Addition>
         {%- else %}
         {%- endif %}
-        <Enlisted>5</Enlisted>
       </Application>
     </Applications>
   </CompetitiveGroupApplicationsList>
